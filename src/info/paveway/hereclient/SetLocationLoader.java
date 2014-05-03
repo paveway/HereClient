@@ -1,5 +1,8 @@
 package info.paveway.hereclient;
 
+import info.paveway.hereclient.CommonConstants.ENCODING;
+import info.paveway.hereclient.CommonConstants.Key;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,40 +20,35 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.content.AsyncTaskLoader;
-import android.util.Log;
 
 /**
- * HTTP同期ローダークラス
+ * ロケーションデータ設定ローダークラス
  *
  * @version 1.0 新規作成
  */
-public class HttpAsyncLoader extends AsyncTaskLoader<String> {
+public class SetLocationLoader extends AsyncTaskLoader<String> {
 
-    private static final String TAG = HttpAsyncLoader.class.getSimpleName();
+    /** ロガー */
+    private Logger mLogger = new Logger(SetLocationLoader.class);
 
-    /** URL */
-    private String mUrl;
-    private String mId;
-    private String mLatitude;
-    private String mLongitude;
+    /** パラメータバンドル */
+    private Bundle mParams;
 
     /**
      * コンストラクタ
      *
      * @param context コンテキスト
-     * @param url URL
+     * @param params パラメータバンドル
      */
-    public HttpAsyncLoader(Context context, String url, String id, String latitude, String longitude) {
+    public SetLocationLoader(Context context, Bundle params) {
         super(context);
-        Log.i(TAG, "HttpAsyncLoader() IN");
+        mLogger.d("IN");
 
-        mUrl = url;
-        mId = id;
-        mLatitude = latitude;
-        mLongitude = longitude;
+        mParams = params;
 
-        Log.i(TAG, "HttpAsyncLoader() OUT(OK)");
+        mLogger.d("OUT(OK)");
     }
 
     /**
@@ -60,7 +58,7 @@ public class HttpAsyncLoader extends AsyncTaskLoader<String> {
      */
     @Override
     public String loadInBackground() {
-        Log.i(TAG, "loadInBackground() IN");
+        mLogger.i("IN");
 
         String result = null;
 
@@ -69,21 +67,22 @@ public class HttpAsyncLoader extends AsyncTaskLoader<String> {
         try {
             List<NameValuePair> entities = new ArrayList<NameValuePair>();
 
-            entities.add(new BasicNameValuePair("id", mId));
-            entities.add(new BasicNameValuePair("latitude", mLatitude));
-            entities.add(new BasicNameValuePair("longitude", mLongitude));
-            HttpPost httpPost = new HttpPost(mUrl);
-            httpPost.setEntity(new UrlEncodedFormEntity(entities, "UTF-8"));
+            entities.add(new BasicNameValuePair(Key.ID,        (String)mParams.get(Key.ID)));
+            entities.add(new BasicNameValuePair(Key.LATITUDE,  (String)mParams.get(Key.LATITUDE)));
+            entities.add(new BasicNameValuePair(Key.LONGITUDE, (String)mParams.get(Key.LONGITUDE)));
+            HttpPost httpPost = new HttpPost((String)mParams.get(Key.URL));
+            httpPost.setEntity(new UrlEncodedFormEntity(entities, ENCODING.UTF_8));
+
             // レスポンス
             result = httpClient.execute(httpPost, new HttpResponseHandler());
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            mLogger.e(e);
 
         } finally {
             httpClient.getConnectionManager().shutdown();
         }
 
-        Log.i(TAG, "loadInBackground() OUT(OK)");
+        mLogger.i("OUT(OK)");
         return result;
     }
 
@@ -93,16 +92,22 @@ public class HttpAsyncLoader extends AsyncTaskLoader<String> {
      */
     private class HttpResponseHandler implements ResponseHandler<String> {
 
+        /** ロガー */
+        private Logger mLogger = new Logger(HttpResponseHandler.class);
+
         @Override
         public String handleResponse(HttpResponse response) throws IOException, ClientProtocolException {
+            mLogger.i("IN");
+
             // 正常終了の場合
             if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
-                String result = EntityUtils.toString(response.getEntity(), "UTF-8");
-                Log.i(TAG, "loadInBackground() OUT(OK) result=[" + result + "]");
+                String result = EntityUtils.toString(response.getEntity(), ENCODING.UTF_8);
+                mLogger.i("OUT(OK) result=[" + result + "]");
                 return result;
 
             // 正常終了以外
             } else {
+                mLogger.i("OUT(NG)");
                 return null;
             }
         }
