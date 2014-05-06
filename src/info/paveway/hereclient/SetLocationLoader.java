@@ -68,6 +68,7 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
             List<NameValuePair> entities = new ArrayList<NameValuePair>();
 
             entities.add(new BasicNameValuePair(Key.ID,        (String)mParams.get(Key.ID)));
+            entities.add(new BasicNameValuePair(Key.NICKNAME,  (String)mParams.get(Key.NICKNAME)));
             entities.add(new BasicNameValuePair(Key.LATITUDE,  (String)mParams.get(Key.LATITUDE)));
             entities.add(new BasicNameValuePair(Key.LONGITUDE, (String)mParams.get(Key.LONGITUDE)));
             HttpPost httpPost = new HttpPost((String)mParams.get(Key.URL));
@@ -100,14 +101,15 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
             mLogger.i("IN");
 
             // 正常終了の場合
-            if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (HttpStatus.SC_OK == statusCode) {
                 String result = EntityUtils.toString(response.getEntity(), ENCODING.UTF_8);
                 mLogger.i("OUT(OK) result=[" + result + "]");
                 return result;
 
             // 正常終了以外
             } else {
-                mLogger.i("OUT(NG)");
+                mLogger.i("OUT(NG) statusCode=[" + statusCode + "]");
                 return null;
             }
         }

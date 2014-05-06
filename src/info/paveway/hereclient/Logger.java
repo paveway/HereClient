@@ -18,7 +18,7 @@ public class Logger {
      * Log.VERBOSE/DEBUG/INFO/WARN/ERROR/ASSERTを指定して下さい。
      * ログを出力させない場合はLOG_LEVEL_NONEを設定して下さい。
      */
-    private static final int LOG_LEVEL = Log.INFO;
+    private static final int LOG_LEVEL = Log.VERBOSE;
 
     /**
      * デフォルトのタグ名
