@@ -1,9 +1,9 @@
 package info.paveway.hereclient;
 
-import info.paveway.hereclient.CommonConstants.INTERFACE_NAME;
+import info.paveway.hereclient.CommonConstants.IntefaceName;
 import info.paveway.hereclient.CommonConstants.Key;
-import info.paveway.hereclient.CommonConstants.LOADER_ID;
-import info.paveway.hereclient.CommonConstants.REQUEST_CODE;
+import info.paveway.hereclient.CommonConstants.LoaderId;
+import info.paveway.hereclient.CommonConstants.RequestCode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,8 +12,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -24,6 +27,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
@@ -62,10 +66,7 @@ public class MainActivity extends FragmentActivity {
     private static final String URL_VALUE = "http://here-paveway-info3.appspot.com/setlocation";
 
     /** ID値 */
-    private static final String ID = MacAddress.getMacAddressString(INTERFACE_NAME.WLAN0);
-
-    /** Google Play Servicesの問題を解決する画面を開くためのrequestCode */
-    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    private static final String ID = MacAddress.getMacAddressString(IntefaceName.WLAN0);
 
     /** ロケーションクライアント */
     private LocationClient mLocationClient;
@@ -84,6 +85,9 @@ public class MainActivity extends FragmentActivity {
 
     /** Googleマップ */
     private GoogleMap mGoogleMap;
+
+    /** マップ初期化済みフラグ */
+    private boolean mInitedMap;
 
     /** 開始フラグ */
     private boolean mStartFlg;
@@ -107,7 +111,7 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
 
         // レイアウトを設定する。
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main_activity);
 
         // 設定値を読み出す。
         readPreferences();
@@ -117,7 +121,6 @@ public class MainActivity extends FragmentActivity {
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(30 * 1000);
         mLocationRequest.setFastestInterval(30 * 1000);
-//        mLocationRequest.setSmallestDisplacement(10.0f);
 
         // ロケーションリスナーを生成する。
         mLocationListener = new LocationListenerImpl();
@@ -131,6 +134,9 @@ public class MainActivity extends FragmentActivity {
 
         // 開始切替ボタンにリスナーを設定する。
         ((ToggleButton)findViewById(R.id.startButton)).setOnCheckedChangeListener(new StartOnCheckedChangeListener());
+
+        /** マップ初期化済みフラグをクリアする。 */
+        mInitedMap = false;
 
         // 開始フラグをクリアする。
         mStartFlg = false;
@@ -172,7 +178,7 @@ public class MainActivity extends FragmentActivity {
         // 要求コードにより処理を判別する。
         switch (requestCode) {
         // 接続エラー解決要求の場合
-        case CONNECTION_FAILURE_RESOLUTION_REQUEST:
+        case RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST:
             // 結果コードにより処理を判別する。
             switch (resultCode) {
             // 正常終了の場合
@@ -196,7 +202,7 @@ public class MainActivity extends FragmentActivity {
             break;
 
         // 設定画面の場合
-        case REQUEST_CODE.REQUEST_CODE_SETTINGS:
+        case RequestCode.SETTINGS:
             // 設定値を読み出す。
             readPreferences();
             break;
@@ -309,7 +315,7 @@ public class MainActivity extends FragmentActivity {
         // 設定メニューの場合
         case R.id.settings_menu:
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivityForResult(intent, REQUEST_CODE.REQUEST_CODE_SETTINGS);
+            startActivityForResult(intent, RequestCode.SETTINGS);
             break;
 
         // 上記以外
@@ -320,6 +326,37 @@ public class MainActivity extends FragmentActivity {
         }
 
         return ret;
+    }
+
+    /**
+     * キーを押した時に呼び出される。
+     *
+     * @param keyCode キーコード
+     * @param event キーイベント
+     * @return 処理結果
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // バックキーではない場合
+        if(keyCode != KeyEvent.KEYCODE_BACK){
+            // スーパークラスのメソッドを呼び出す。
+            return super.onKeyDown(keyCode, event);
+
+        // バックキーの場合
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("終了確認");
+            builder.setMessage("終了します");
+            builder.setPositiveButton("はい", new OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            // 処理済みとする。
+            return false;
+        }
     }
 
     /**
@@ -395,14 +432,6 @@ public class MainActivity extends FragmentActivity {
 
         mGoogleMap.setOnMarkerClickListener(new OnMarkerClickListenerImpl());
 
-        // 東京駅の位置、ズーム設定を行う。
-        CameraPosition camerapos =
-                new CameraPosition.Builder().target(
-                        new LatLng(35.681382, 139.766084)).zoom(15.5f).build();
-
-        // 地図の中心を変更する。
-        mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(camerapos));
-
         mLogger.d("OUT(OK)");
     }
 
@@ -462,6 +491,22 @@ public class MainActivity extends FragmentActivity {
             // ロケーション更新を要求済みに設定する。
             mLocationUpdatesRequested = true;
 
+            // マップ未初期化の場合
+            if (!mInitedMap) {
+                Location location = mLocationClient.getLastLocation();
+
+                // 現在位置、ズーム設定を行う。
+                CameraPosition camerapos =
+                    new CameraPosition.Builder().target(
+                        new LatLng(location.getLatitude(), location.getLongitude())).zoom(15.0f).build();
+
+                // 地図の中心を変更する。
+                mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(camerapos));
+
+                // マップ初期化済みとする。
+                mInitedMap = true;
+            }
+
             mLogger.i("OUT(OK)");
         }
 
@@ -504,7 +549,7 @@ public class MainActivity extends FragmentActivity {
             if (connectionResult.hasResolution()) {
                 try {
                     // エラーを解決してくれるインテントを投げる。
-                    connectionResult.startResolutionForResult(MainActivity.this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                    connectionResult.startResolutionForResult(MainActivity.this, RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST);
                 } catch (IntentSender.SendIntentException e) {
                     mLogger.e(e);
                 }
@@ -512,7 +557,7 @@ public class MainActivity extends FragmentActivity {
             // 解決策がない場合
             } else {
                 // 解決策がない場合はエラーダイアログを出します
-                showErrorDialog(connectionResult.getErrorCode(), CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                showErrorDialog(connectionResult.getErrorCode(), RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST);
             }
 
             mLogger.i("OUT(OK)");
@@ -622,7 +667,7 @@ public class MainActivity extends FragmentActivity {
                     Bundle bundle = new Bundle();
 
                     bundle.putString(Key.URL,       URL_VALUE);
-                    bundle.putString(Key.ID,        MacAddress.getMacAddressString(INTERFACE_NAME.WLAN0));
+                    bundle.putString(Key.ID,        MacAddress.getMacAddressString(IntefaceName.WLAN0));
                     bundle.putString(Key.NICKNAME,  mNickname);
                     bundle.putString(Key.LATITUDE,  String.valueOf(location.getLatitude()));
                     bundle.putString(Key.LONGITUDE, String.valueOf(location.getLongitude()));
@@ -632,7 +677,7 @@ public class MainActivity extends FragmentActivity {
 
                     // ローダーを再スタートする。
                     getSupportLoaderManager().restartLoader(
-                            LOADER_ID.SET_LOCATION,
+                            LoaderId.SET_LOCATION,
                             bundle,
                             new HttpLoaderCallbacks(MainActivity.this));
                 } else {
@@ -692,10 +737,10 @@ public class MainActivity extends FragmentActivity {
             mLogger.i("IN");
 
             // ロケーション設定の場合
-            if (LOADER_ID.SET_LOCATION == loader.getId()) {
+            if (LoaderId.SET_LOCATION == loader.getId()) {
                 // レスポンス文字列がある場合
                 if (StringUtil.isNotNullOrEmpty(response)) {
-                    Toast.makeText(mContext, "Response=[" + response + "]", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(mContext, "Response=[" + response + "]", Toast.LENGTH_SHORT).show();
                     try {
                         // JSON文字列を生成する。
                         JSONObject jsonObject = new JSONObject(response);

@@ -1,6 +1,6 @@
 package info.paveway.hereclient;
 
-import info.paveway.hereclient.CommonConstants.ENCODING;
+import info.paveway.hereclient.CommonConstants.Encoding;
 import info.paveway.hereclient.CommonConstants.Key;
 
 import java.io.IOException;
@@ -33,14 +33,11 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
     /** ロガー */
     private Logger mLogger = new Logger(SetLocationLoader.class);
 
-    /** パラメータバンドル */
-    private Bundle mParams;
-
     /**
      * コンストラクタ
      *
      * @param context コンテキスト
-     * @param params パラメータバンドル
+     * @param params パラメータ
      */
     public SetLocationLoader(Context context, Bundle params) {
         super(context);
@@ -51,11 +48,9 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
         mLogger.d("OUT(OK)");
     }
 
-    /**
-     * バックグラウンド処理を行う。
-     *
-     * @return 取得した文字列
-     */
+    /** パラメータバンドル */
+    protected Bundle mParams;
+
     @Override
     public String loadInBackground() {
         mLogger.i("IN");
@@ -65,14 +60,10 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
         // HTTPクライアントを生成する。
         HttpClient httpClient = new DefaultHttpClient();
         try {
-            List<NameValuePair> entities = new ArrayList<NameValuePair>();
+            List<NameValuePair> entities = setEntities();
 
-            entities.add(new BasicNameValuePair(Key.ID,        (String)mParams.get(Key.ID)));
-            entities.add(new BasicNameValuePair(Key.NICKNAME,  (String)mParams.get(Key.NICKNAME)));
-            entities.add(new BasicNameValuePair(Key.LATITUDE,  (String)mParams.get(Key.LATITUDE)));
-            entities.add(new BasicNameValuePair(Key.LONGITUDE, (String)mParams.get(Key.LONGITUDE)));
             HttpPost httpPost = new HttpPost((String)mParams.get(Key.URL));
-            httpPost.setEntity(new UrlEncodedFormEntity(entities, ENCODING.UTF_8));
+            httpPost.setEntity(new UrlEncodedFormEntity(entities, Encoding.UTF_8));
 
             // レスポンス
             result = httpClient.execute(httpPost, new HttpResponseHandler());
@@ -91,7 +82,7 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
      * HTTPレスポンスヘルパークラス
      *
      */
-    private class HttpResponseHandler implements ResponseHandler<String> {
+    protected class HttpResponseHandler implements ResponseHandler<String> {
 
         /** ロガー */
         private Logger mLogger = new Logger(HttpResponseHandler.class);
@@ -103,7 +94,7 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
             // 正常終了の場合
             int statusCode = response.getStatusLine().getStatusCode();
             if (HttpStatus.SC_OK == statusCode) {
-                String result = EntityUtils.toString(response.getEntity(), ENCODING.UTF_8);
+                String result = EntityUtils.toString(response.getEntity(), Encoding.UTF_8);
                 mLogger.i("OUT(OK) result=[" + result + "]");
                 return result;
 
@@ -113,5 +104,21 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
                 return null;
             }
         }
+    }
+
+    /**
+     * エンティティリストを設定する。
+     *
+     * @return エンティティリスト
+     */
+    protected List<NameValuePair> setEntities() {
+        List<NameValuePair> entities = new ArrayList<NameValuePair>();
+
+        entities.add(new BasicNameValuePair(Key.ID,        (String)mParams.get(Key.ID)));
+        entities.add(new BasicNameValuePair(Key.NICKNAME,  (String)mParams.get(Key.NICKNAME)));
+        entities.add(new BasicNameValuePair(Key.LATITUDE,  (String)mParams.get(Key.LATITUDE)));
+        entities.add(new BasicNameValuePair(Key.LONGITUDE, (String)mParams.get(Key.LONGITUDE)));
+
+        return entities;
     }
 }

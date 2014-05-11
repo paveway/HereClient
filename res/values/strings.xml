@@ -4,4 +4,14 @@
     <string name="app_name">ココにイル</string>
     <string name="settings_menu">設定</string>
 
+    <string name="main_room_no_button">ルーム選択</string>
+    <string name="main_room_no_label">ルームNo</string>
+    <string name="main_password_label">パスワード</string>
+    <string name="main_nickname_label">ニックネーム</string>
+    <string name="main_enter_button">入室</string>
+    <string name="main_exit_button">退室</string>
+    <string name="main_clear_button">クリア</string>
+
+    <string name="map_start_button">開始</string>
+
 </resources>

@@ -7,9 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * MACアドレスクラス
+ *
+ * @version 1.0 新規作成
+ *
+ */
 public class MacAddress {
 
-    private static final String TAG = MacAddress.class.getSimpleName();
+
     private static StringBuilder mStringBuilder = new StringBuilder();
 
     public static String getMacAddressString() {
