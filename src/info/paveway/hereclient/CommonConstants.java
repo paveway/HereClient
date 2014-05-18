@@ -1,9 +1,33 @@
 package info.paveway.hereclient;
 
+/**
+ * 共通定数クラス
+ *
+ * @version 1.0 新規作成
+ *
+ */
 public class CommonConstants {
 
+    /**
+     * URL定数
+     *
+     */
     public class Url {
-        public static final String INIT = "http://here-paveway-info3.appspot.com/init";
+        /** ベースURL */
+        public static final String BASE = "http://here-paveway-info3.appspot.com/";
+
+        /** 初期化URL */
+        public static final String INIT = BASE + "init";
+
+        /** 入室URL */
+        public static final String ENTER = BASE + "enter";
+
+        /** 退室URL */
+        public static final String EXIT = BASE + "exit";
+
+        /** 位置情報設定 */
+        public static final String SET_LOCATION = BASE + "setlocation";
+
     }
 
     /**
@@ -11,31 +35,46 @@ public class CommonConstants {
      *
      */
     public class Key {
-        /** URL */
+        /** URLキー */
         public static final String URL = "url";
 
+        /** ステータスキー */
+        public static final String STATUS = "status";
+
+        /** 部屋データリストキー */
+        public static final String ROOMS = "rooms";
+
+        /** 部屋番号キー */
         public static final String ROOM_NO = "roomNo";
 
-        public static final String ROOM_NAME = "roomName";
+        /** 使用中フラグキー */
+        public static final String USED = "used";
 
+        /** パスワードキー */
         public static final String PASSWORD = "password";
 
-        /** ニックネーム */
+        /** ユーザーIDキー */
+        public static final String USER_ID = "userId";
+
+        /** ニックネームキー */
         public static final String NICKNAME = "nickname";
 
-        /** ID */
+        /** 更新日キー */
+        public static final String UPDATE = "update";
+
+        /** IDキー */
         public static final String ID = "id";
 
-        /** Eメール */
+        /** Eメールキー */
         public static final String EMAIL = "email";
 
-        /** 緯度 */
+        /** 緯度キー */
         public static final String LATITUDE = "latitude";
 
-        /** 経度 */
+        /** 経度キー */
         public static final String LONGITUDE = "longitude";
 
-        /** ロケーション情報 */
+        /** 位置情報リストキー */
         public static final String LOCATIONS = "locations";
     }
 
@@ -53,14 +92,17 @@ public class CommonConstants {
      *
      */
     public class LoaderId {
-        /** 初期設定 */
+        /** 初期設定ID */
         public static final int INIT = 0;
 
-        /** 入室 */
+        /** 入室ID */
         public static final int ENTER = 1;
 
-        /** ロケーション設定 */
-        public static final int SET_LOCATION = 2;
+        /** 退室ID */
+        public static final int EXIT = 2;
+
+        /** 位置情報設定ID */
+        public static final int SET_LOCATION = 3;
     }
 
     /**

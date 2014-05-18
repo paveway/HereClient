@@ -18,14 +18,18 @@ import android.os.Bundle;
 import android.support.v4.content.AsyncTaskLoader;
 
 /**
- * ロケーションデータ設定ローダークラス
+ * 入室ローダークラス
  *
  * @version 1.0 新規作成
+ *
  */
-public class SetLocationLoader extends AsyncTaskLoader<String> {
+public class EnterLoader extends AsyncTaskLoader<String> {
 
     /** ロガー */
-    private Logger mLogger = new Logger(SetLocationLoader.class);
+    private Logger mLogger = new Logger(EnterLoader.class);
+
+    /** パラメータ */
+    private Bundle mParams;
 
     /**
      * コンストラクタ
@@ -33,33 +37,30 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
      * @param context コンテキスト
      * @param params パラメータ
      */
-    public SetLocationLoader(Context context, Bundle params) {
+    public EnterLoader(Context context, Bundle params) {
+        // スーパークラスのコンストラクタを呼び出す。
         super(context);
-        mLogger.d("IN");
 
+        // パラメータを設定する。
         mParams = params;
-
-        mLogger.d("OUT(OK)");
     }
 
-    /** パラメータバンドル */
-    protected Bundle mParams;
-
+    /**
+     * バックグラウンド処理を行う。
+     *
+     * @param 返却されたレスポンス文字列。
+     */
     @Override
     public String loadInBackground() {
-        mLogger.i("IN");
-
         String result = null;
 
-        // HTTPクライアントを生成する。
         HttpClient httpClient = new DefaultHttpClient();
         try {
             List<NameValuePair> entities = setEntities();
 
-            HttpPost httpPost = new HttpPost((String)mParams.get(Key.URL));
+            HttpPost httpPost = new HttpPost((String)mParams.getString(Key.URL));
             httpPost.setEntity(new UrlEncodedFormEntity(entities, Encoding.UTF_8));
 
-            // レスポンス
             result = httpClient.execute(httpPost, new HttpResponseHandler());
         } catch (Exception e) {
             mLogger.e(e);
@@ -68,22 +69,16 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
             httpClient.getConnectionManager().shutdown();
         }
 
-        mLogger.i("OUT(OK)");
         return result;
     }
 
-    /**
-     * エンティティリストを設定する。
-     *
-     * @return エンティティリスト
-     */
     protected List<NameValuePair> setEntities() {
         List<NameValuePair> entities = new ArrayList<NameValuePair>();
 
-        entities.add(new BasicNameValuePair(Key.ID,        (String)mParams.get(Key.ID)));
-        entities.add(new BasicNameValuePair(Key.NICKNAME,  (String)mParams.get(Key.NICKNAME)));
-        entities.add(new BasicNameValuePair(Key.LATITUDE,  (String)mParams.get(Key.LATITUDE)));
-        entities.add(new BasicNameValuePair(Key.LONGITUDE, (String)mParams.get(Key.LONGITUDE)));
+        entities.add(new BasicNameValuePair(Key.ROOM_NO,  mParams.getString(Key.ROOM_NO)));
+        entities.add(new BasicNameValuePair(Key.PASSWORD, mParams.getString(Key.PASSWORD)));
+        entities.add(new BasicNameValuePair(Key.USER_ID,  mParams.getString(Key.USER_ID)));
+        entities.add(new BasicNameValuePair(Key.NICKNAME, mParams.getString(Key.NICKNAME)));
 
         return entities;
     }

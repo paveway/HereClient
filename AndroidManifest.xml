@@ -42,6 +42,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="info.paveway.hereclient.SelectRoomNoActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
             android:name="info.paveway.hereclient.SettingsActivity"
             android:label="@string/app_name" >
         </activity>
