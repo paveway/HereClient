@@ -6,7 +6,6 @@ import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.RequestCode;
 import info.paveway.hereclient.CommonConstants.Url;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,17 +16,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -49,6 +44,9 @@ public class MainActivity extends FragmentActivity {
 
     /** ID値 */
     private static final String USER_ID = MacAddress.getMacAddressString(IntefaceName.WLAN0);
+
+    /** プリフェレンス */
+    private SharedPreferences mPrefs;
 
     /** 部屋番号値 */
     private TextView mRoomNoValue;
@@ -98,6 +96,10 @@ public class MainActivity extends FragmentActivity {
         // レイアウトを設定する。
         setContentView(R.layout.main_activity);
 
+        // プリフェレンスを取得する。
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+
+        // 各ウィジットを取得する。
         mRoomNoValue   = (TextView)findViewById(R.id.roomNoValue);
         mPasswordValue = (EditText)findViewById(R.id.passwordValue);
         mNicknameValue = (EditText)findViewById(R.id.nicknameValue);
@@ -105,6 +107,8 @@ public class MainActivity extends FragmentActivity {
         mEnterButton   = (Button)findViewById(R.id.enterButton);
         mExitButton    = (Button)findViewById(R.id.exitButton);
         mClearButton   = (Button)findViewById(R.id.clearButton);
+
+        // リスナーを設定する。
         mRoomNoButton.setOnClickListener(new ButtonOnClickListener());
         mEnterButton.setOnClickListener( new ButtonOnClickListener());
         mExitButton.setOnClickListener(  new ButtonOnClickListener());
@@ -115,6 +119,7 @@ public class MainActivity extends FragmentActivity {
 
         // 入室済みの場合
         if ((0 != mRoomNo) && !"".equals(mPassword) && !"".equals(mNickname)) {
+            // 各ウィジットに初期値を設定する。
             mRoomNoValue.setText(String.valueOf(mRoomNo));
             mPasswordValue.setText(mPassword);
             mNicknameValue.setText(mNickname);
@@ -132,12 +137,14 @@ public class MainActivity extends FragmentActivity {
 
             // 初期化ローダーをロードし、初期データを取得する。
             getSupportLoaderManager().initLoader(
-                    LoaderId.INIT, params, new InitLoaderCallbacks(MainActivity.this));
+                LoaderId.INIT, params, new InitLoaderCallbacks(MainActivity.this, new InitOnReceiveResponseListener()));
         }
 
+        // ★暫定
         mRoomNo = 1;
         mPassword = "0000";
         mNickname = "ニックネーム";
+        // ★暫定(ここまで)
 
         mLogger.i("OUT(OK)");
     }
@@ -209,36 +216,36 @@ public class MainActivity extends FragmentActivity {
         return ret;
     }
 
-    /**
-     * キーを押した時に呼び出される。
-     *
-     * @param keyCode キーコード
-     * @param event キーイベント
-     * @return 処理結果
-     */
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // バックキーではない場合
-        if(keyCode != KeyEvent.KEYCODE_BACK){
-            // スーパークラスのメソッドを呼び出す。
-            return super.onKeyDown(keyCode, event);
-
-        // バックキーの場合
-        } else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setTitle("終了確認");
-            builder.setMessage("終了します");
-            builder.setPositiveButton("はい", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            });
-
-            // 処理済みとする。
-            return false;
-        }
-    }
+//    /**
+//     * キーを押した時に呼び出される。
+//     *
+//     * @param keyCode キーコード
+//     * @param event キーイベント
+//     * @return 処理結果
+//     */
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        // バックキーではない場合
+//        if(keyCode != KeyEvent.KEYCODE_BACK){
+//            // スーパークラスのメソッドを呼び出す。
+//            return super.onKeyDown(keyCode, event);
+//
+//        // バックキーの場合
+//        } else {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//            builder.setTitle("終了確認");
+//            builder.setMessage("終了します");
+//            builder.setPositiveButton("はい", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//
+//                }
+//            });
+//
+//            // 処理済みとする。
+//            return false;
+//        }
+//    }
 
     /**
      * 設定値を読み出す。
@@ -246,10 +253,28 @@ public class MainActivity extends FragmentActivity {
     private void readPrefs() {
         mLogger.d("IN");
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        mRoomNo = prefs.getLong(Key.ROOM_NO, 0);
-        mPassword = prefs.getString(Key.PASSWORD, "");
-        mNickname = prefs.getString(Key.NICKNAME, "");
+        mRoomNo = mPrefs.getLong(Key.ROOM_NO, 0);
+        mPassword = mPrefs.getString(Key.PASSWORD, "");
+        mNickname = mPrefs.getString(Key.NICKNAME, "");
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * 設定値を書き込む。
+     *
+     * @param roomNo 部屋番号
+     * @param password パスワード
+     * @param nickname ニックネーム
+     */
+    private void writePrefs(long roomNo, String password, String nickname) {
+        mLogger.d("IN");
+
+        Editor editor = mPrefs.edit();
+        editor.putLong(Key.ROOM_NO, roomNo);
+        editor.putString(Key.PASSWORD, password);
+        editor.putString(Key.NICKNAME, nickname);
+        editor.commit();
 
         mLogger.d("OUT(OK)");
     }
@@ -286,7 +311,7 @@ public class MainActivity extends FragmentActivity {
 
                 // 入室ローダーをロードする。
                 getSupportLoaderManager().restartLoader(
-                        LoaderId.ENTER, params, new EnterLoaderCallbacks(MainActivity.this));
+                        LoaderId.ENTER, params, new EnterLoaderCallbacks(MainActivity.this, new EnterOnReceiveResponseListener(MainActivity.this)));
                 break;
             }
 
@@ -301,7 +326,7 @@ public class MainActivity extends FragmentActivity {
 
                 // 退室ローダーをロードする。
                 getSupportLoaderManager().restartLoader(
-                        LoaderId.EXIT, params, new ExitLoaderCallbacks(MainActivity.this));
+                        LoaderId.EXIT, params, new ExitLoaderCallbacks(MainActivity.this, new ExitOnReceiveResponseListener()));
                 break;
             }
 
@@ -325,274 +350,154 @@ public class MainActivity extends FragmentActivity {
 
     /**************************************************************************/
     /**
-     * 初期ローダーコールバッククラス
+     * 初期化レスポンス受信リスナークラス
      */
-    private class InitLoaderCallbacks implements LoaderCallbacks<String> {
-
-        /** コンテキスト */
-        private Context mContext;
+    private class InitOnReceiveResponseListener implements OnReceiveResponseListener {
 
         /**
-         * コンストラクタ
+         * レスポンスを受信した時に呼び出される。
          *
-         * @param context コンテキスト
-         */
-        public InitLoaderCallbacks(Context context) {
-            mContext = context;
-        }
-
-        /**
-         * 生成された時に呼び出される。
-         *
-         * @param id ID
-         * @param bundle 引き渡されたデータ
+         * @param response レスポンス文字列
+         * @param bundle バンドル
          */
         @Override
-        public Loader<String> onCreateLoader(int id, Bundle bundle) {
-            Loader<String> loader = new InitLoader(mContext, bundle);
-            loader.forceLoad();
-            return loader;
-        }
+        public void onReceive(String response, Bundle bundle) {
+            try {
+                JSONObject json = new JSONObject(response);
+                boolean status = json.getBoolean(Key.STATUS);
+                // 正常終了の場合
+                if (status) {
+                    JSONArray rooms = json.getJSONArray(Key.ROOMS);
+                    int roomsNum = rooms.length();
+                    for (int i = 0; i < roomsNum; i++) {
+                        JSONObject room = rooms.getJSONObject(i);
 
-        /**
-         * 終了する時に呼び出される。
-         *
-         * @param loader ローダー
-         * @param response 取得したレスポンス文字列
-         */
-        @Override
-        public void onLoadFinished(Loader<String> loader, String response) {
-            // 初期化ローダーの場合
-            if (LoaderId.INIT == loader.getId()) {
-                // レスポンス文字列がある場合
-                if (StringUtil.isNotNullOrEmpty(response)) {
-                    try {
-                        JSONObject json = new JSONObject(response);
-                        boolean status = json.getBoolean(Key.STATUS);
-                        // 正常終了の場合
-                        if (status) {
-                            JSONArray rooms = json.getJSONArray(Key.ROOMS);
-                            int roomsNum = rooms.length();
-                            for (int i = 0; i < roomsNum; i++) {
-                                JSONObject room = rooms.getJSONObject(i);
-
-                                RoomData roomData = new RoomData();
-                                roomData.setRoomNo(room.getLong(Key.ROOM_NO));
-                                roomData.setUsed(room.getBoolean(Key.USED));
-                                roomData.setPassword(room.getString(Key.PASSWORD));
-                                roomData.setUserId(room.getString(Key.USER_ID));
-                                roomData.setNickname(room.getString(Key.NICKNAME));
-                                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
-                                try {
-                                    roomData.setUpdate(format.parse(room.getString(Key.UPDATE)));
-                                } catch (ParseException e) {
-                                    mLogger.e(e);
-                                }
-
-                                mRoomDataList.add(roomData);
-                            }
-
-                        // 異常終了の場合
-                        } else {
-
+                        RoomData roomData = new RoomData();
+                        roomData.setRoomNo(  room.getLong(Key.ROOM_NO));
+                        roomData.setUsed(    room.getBoolean(Key.USED));
+                        roomData.setPassword(room.getString(Key.PASSWORD));
+                        roomData.setUserId(  room.getString(Key.USER_ID));
+                        roomData.setNickname(room.getString(Key.NICKNAME));
+                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
+                        try {
+                            roomData.setUpdate(format.parse(room.getString(Key.UPDATE)));
+                        } catch (ParseException e) {
+                            mLogger.e(e);
                         }
-                    } catch (JSONException e) {
-                        mLogger.e(e);
-                    }
-                }
-            }
-        }
 
-        /**
-         * リセットされた時に呼び出される。
-         *
-         * @param loader ローダー
-         */
-        @Override
-        public void onLoaderReset(Loader<String> loader) {
-            // 何もしない。
+                        mRoomDataList.add(roomData);
+                    }
+
+                // 異常終了の場合
+                } else {
+
+                }
+            } catch (JSONException e) {
+                mLogger.e(e);
+            }
         }
     }
 
     /**************************************************************************/
     /**
-     * 入室ローダーコールバッククラス
+     * 入室レスポンス受信リスナークラス
      */
-    private class EnterLoaderCallbacks implements LoaderCallbacks<String> {
+    private class EnterOnReceiveResponseListener implements OnReceiveResponseListener {
 
-        /** コンテキスト */
         private Context mContext;
 
-        /**
-         * コンストラクタ
-         *
-         * @param context コンテキスト
-         */
-        public EnterLoaderCallbacks(Context context) {
+        public EnterOnReceiveResponseListener(Context context) {
             mContext = context;
         }
 
         /**
-         * 生成された時に呼び出される。
+         * レスポンスを受信した時に呼び出される。
          *
-         * @param id ID
-         * @param bundle 引き渡されたデータ
+         * @param response レスポンス文字列
+         * @param bundle バンドル
          */
         @Override
-        public Loader<String> onCreateLoader(int id, Bundle bundle) {
-            Loader<String> loader = new EnterLoader(mContext, bundle);
-            loader.forceLoad();
-            return loader;
-        }
+        public void onReceive(String response, Bundle bundle) {
+            try {
+                JSONObject json = new JSONObject(response);
+                boolean status = json.getBoolean(Key.STATUS);
+                // 正常終了の場合
+                if (status) {
+                    // 各ウィジットを設定する。
+                    mRoomNoValue.setEnabled(false);
+                    mPasswordValue.setEnabled(false);
+                    mNicknameValue.setEnabled(false);
+                    mRoomNoButton.setEnabled(false);
+                    mPasswordValue.setEnabled(false);
+                    mNicknameValue.setEnabled(false);
+                    mEnterButton.setEnabled(true);
+                    mExitButton.setEnabled(true);
 
-        /**
-         * 終了する時に呼び出される。
-         *
-         * @param loader ローダー
-         * @param response 取得したレスポンス文字列
-         */
-        @Override
-        public void onLoadFinished(Loader<String> loader, String response) {
-            // 入室ローダーの場合
-            if (LoaderId.ENTER == loader.getId()) {
-                // レスポンス文字列がある場合
-                if (StringUtil.isNotNullOrEmpty(response)) {
-                    try {
-                        JSONObject json = new JSONObject(response);
-                        boolean status = json.getBoolean(Key.STATUS);
-                        // 正常終了の場合
-                        if (status) {
-                            JSONArray rooms = json.getJSONArray(Key.ROOMS);
-                            int roomsNum = rooms.length();
-                            for (int i = 0; i < roomsNum; i++) {
-                                JSONObject room = rooms.getJSONObject(i);
+                    // マップ画面に遷移する。
+                    long roomNo     = bundle.getLong(  Key.ROOM_NO);
+                    String password = bundle.getString(Key.PASSWORD);
+                    String nickname = bundle.getString(Key.NICKNAME);
 
-                                RoomData roomData = new RoomData();
-                                roomData.setRoomNo(room.getLong(Key.ROOM_NO));
-                                roomData.setUsed(room.getBoolean(Key.USED));
-                                roomData.setPassword(room.getString(Key.PASSWORD));
-                                roomData.setUserId(room.getString(Key.USER_ID));
-                                roomData.setNickname(room.getString(Key.NICKNAME));
-                                DateFormat format = DateFormat.getDateInstance();
-                                try {
-                                    roomData.setUpdate(format.parse(room.getString(Key.UPDATE)));
-                                } catch (ParseException e) {
-                                    mLogger.e(e);
-                                }
+                    // 設定ファイル
+                    writePrefs(roomNo, password, nickname);
 
-                                mRoomDataList.add(roomData);
-                            }
+                    Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                    intent.putExtra(Key.ROOM_NO,  roomNo);
+                    intent.putExtra(Key.USER_ID,  USER_ID);
+                    intent.putExtra(Key.PASSWORD, password);
+                    intent.putExtra(Key.NICKNAME, nickname);
 
-                        // 異常終了の場合
-                        } else {
+                    mContext.startActivity(intent);
 
-                        }
-                    } catch (JSONException e) {
-                        mLogger.e(e);
-                    }
+                // 異常終了の場合
+                } else {
+
                 }
+            } catch (JSONException e) {
+                mLogger.e(e);
             }
-        }
-
-        /**
-         * リセットされた時に呼び出される。
-         *
-         * @param loader ローダー
-         */
-        @Override
-        public void onLoaderReset(Loader<String> loader) {
-            // 何もしない。
         }
     }
 
     /**************************************************************************/
     /**
-     * 退室ローダーコールバッククラス
+     * 退室レスポンス受信リスナークラス
      */
-    private class ExitLoaderCallbacks implements LoaderCallbacks<String> {
-
-        /** コンテキスト */
-        private Context mContext;
+    private class ExitOnReceiveResponseListener implements OnReceiveResponseListener {
 
         /**
-         * コンストラクタ
+         * レスポンスを受信した時に呼び出される。
          *
-         * @param context コンテキスト
-         */
-        public ExitLoaderCallbacks(Context context) {
-            mContext = context;
-        }
-
-        /**
-         * 生成された時に呼び出される。
-         *
-         * @param id ID
-         * @param bundle 引き渡されたデータ
+         * @param response レスポンス文字列
+         * @param bundle バンドル
          */
         @Override
-        public Loader<String> onCreateLoader(int id, Bundle bundle) {
-            Loader<String> loader = new EnterLoader(mContext, bundle);
-            loader.forceLoad();
-            return loader;
-        }
+        public void onReceive(String response, Bundle bundle) {
+            try {
+                JSONObject json = new JSONObject(response);
+                boolean status = json.getBoolean(Key.STATUS);
+                // 正常終了の場合
+                if (status) {
+                    // 各ウィジットを設定する。
+                    mRoomNoValue.setText("");
+                    mPasswordValue.setText("");
+                    mNicknameValue.setText("");
+                    mRoomNoValue.setEnabled(true);
+                    mPasswordValue.setEnabled(true);
+                    mNicknameValue.setEnabled(true);
+                    mRoomNoButton.setEnabled(true);
+                    mPasswordValue.setEnabled(true);
+                    mNicknameValue.setEnabled(true);
+                    mEnterButton.setEnabled(true);
+                    mExitButton.setEnabled(false);
 
-        /**
-         * 終了する時に呼び出される。
-         *
-         * @param loader ローダー
-         * @param response 取得したレスポンス文字列
-         */
-        @Override
-        public void onLoadFinished(Loader<String> loader, String response) {
-            // 退室ローダーの場合
-            if (LoaderId.EXIT == loader.getId()) {
-                // レスポンス文字列がある場合
-                if (StringUtil.isNotNullOrEmpty(response)) {
-                    try {
-                        JSONObject json = new JSONObject(response);
-                        boolean status = json.getBoolean(Key.STATUS);
-                        // 正常終了の場合
-                        if (status) {
-                            JSONArray rooms = json.getJSONArray(Key.ROOMS);
-                            int roomsNum = rooms.length();
-                            for (int i = 0; i < roomsNum; i++) {
-                                JSONObject room = rooms.getJSONObject(i);
+                // 異常終了の場合
+                } else {
 
-                                RoomData roomData = new RoomData();
-                                roomData.setRoomNo(room.getLong(Key.ROOM_NO));
-                                roomData.setUsed(room.getBoolean(Key.USED));
-                                roomData.setPassword(room.getString(Key.PASSWORD));
-                                roomData.setUserId(room.getString(Key.USER_ID));
-                                roomData.setNickname(room.getString(Key.NICKNAME));
-                                DateFormat format = DateFormat.getDateInstance();
-                                try {
-                                    roomData.setUpdate(format.parse(room.getString(Key.UPDATE)));
-                                } catch (ParseException e) {
-                                    mLogger.e(e);
-                                }
-
-                                mRoomDataList.add(roomData);
-                            }
-
-                        // 異常終了の場合
-                        } else {
-
-                        }
-                    } catch (JSONException e) {
-                        mLogger.e(e);
-                    }
                 }
+            } catch (JSONException e) {
+                mLogger.e(e);
             }
-        }
-
-        /**
-         * リセットされた時に呼び出される。
-         *
-         * @param loader ローダー
-         */
-        @Override
-        public void onLoaderReset(Loader<String> loader) {
-            // 何もしない。
         }
     }
 }

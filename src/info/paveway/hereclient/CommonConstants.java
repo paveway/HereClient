@@ -62,9 +62,6 @@ public class CommonConstants {
         /** 更新日キー */
         public static final String UPDATE = "update";
 
-        /** IDキー */
-        public static final String ID = "id";
-
         /** Eメールキー */
         public static final String EMAIL = "email";
 
@@ -121,6 +118,9 @@ public class CommonConstants {
     public class RequestCode {
         /** 設定画面 */
         public static final int SETTINGS = 1;
+
+        /** マップ画面 */
+        public static final int MAP = 2;
 
         /** 接続エラー解決要求 */
         public static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;

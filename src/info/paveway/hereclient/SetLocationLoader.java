@@ -80,10 +80,11 @@ public class SetLocationLoader extends AsyncTaskLoader<String> {
     protected List<NameValuePair> setEntities() {
         List<NameValuePair> entities = new ArrayList<NameValuePair>();
 
-        entities.add(new BasicNameValuePair(Key.ID,        (String)mParams.get(Key.ID)));
-        entities.add(new BasicNameValuePair(Key.NICKNAME,  (String)mParams.get(Key.NICKNAME)));
-        entities.add(new BasicNameValuePair(Key.LATITUDE,  (String)mParams.get(Key.LATITUDE)));
-        entities.add(new BasicNameValuePair(Key.LONGITUDE, (String)mParams.get(Key.LONGITUDE)));
+        entities.add(new BasicNameValuePair(Key.USER_ID,                  mParams.getString(Key.USER_ID)));
+        entities.add(new BasicNameValuePair(Key.ROOM_NO,   String.valueOf(mParams.getLong(  Key.ROOM_NO))));
+        entities.add(new BasicNameValuePair(Key.NICKNAME,                 mParams.getString(Key.NICKNAME)));
+        entities.add(new BasicNameValuePair(Key.LATITUDE,                 mParams.getString(Key.LATITUDE)));
+        entities.add(new BasicNameValuePair(Key.LONGITUDE,                mParams.getString(Key.LONGITUDE)));
 
         return entities;
     }
