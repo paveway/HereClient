@@ -1,6 +1,7 @@
 package info.paveway.hereclient;
 
 /**
+ * ここにいるクライアント
  * 共通定数クラス
  *
  * @version 1.0 新規作成
@@ -16,72 +17,92 @@ public class CommonConstants {
         /** ベースURL */
         public static final String BASE = "http://here-paveway-info3.appspot.com/";
 
-        /** 初期化URL */
-        public static final String INIT = BASE + "init";
+        /** ユーザ登録URL */
+        public static final String REGIST_USER = BASE + "registUser";
+
+        /** ユーザ削除URL */
+        public static final String DELETE_USER = BASE + "deleteUser";
+
+        /** ログインURL */
+        public static final String LOGIN = BASE + "login";
+
+        /** ログアウトURL */
+        public static final String LOGOUT = BASE + "logout";
+
+        /** ルームリストURL */
+        public static final String ROOM_LIST = BASE + "roomList";
+
+        /** ルーム作成URL */
+        public static final String CREATE_ROOM = BASE + "createRoom";
+
+        /** ルーム削除URL */
+        public static final String DELETE_ROOM = BASE + "deleteRoom";
 
         /** 入室URL */
-        public static final String ENTER = BASE + "enter";
+        public static final String ENTER_ROOM = BASE + "enterRoom";
 
         /** 退室URL */
-        public static final String EXIT = BASE + "exit";
+        public static final String EXIT_ROOM = BASE + "exitRoom";
 
-        /** 位置情報設定 */
-        public static final String SET_LOCATION = BASE + "setlocation";
+        /** 位置情報取得URL */
+        public static final String GET_LOCATION = BASE + "getLocation";
 
     }
 
     /**
-     * キー定数
+     * HTTPキー定数
      *
      */
-    public class Key {
+    public class HttpKey {
         /** URLキー */
         public static final String URL = "url";
 
-        /** ステータスキー */
+        /** ステータス */
         public static final String STATUS = "status";
 
-        /** 部屋データリストキー */
-        public static final String ROOMS = "rooms";
-
-        /** 部屋番号キー */
-        public static final String ROOM_NO = "roomNo";
-
-        /** 使用中フラグキー */
-        public static final String USED = "used";
-
-        /** パスワードキー */
-        public static final String PASSWORD = "password";
-
-        /** ユーザーIDキー */
+        /** ユーザID */
         public static final String USER_ID = "userId";
 
-        /** ニックネームキー */
-        public static final String NICKNAME = "nickname";
+        /** ユーザ名 */
+        public static final String USER_NAME = "userName";
 
-        /** 更新日キー */
-        public static final String UPDATE = "update";
+        /** ユーザパスワード */
+        public static final String USER_PASSWORD = "userPassword";
 
-        /** Eメールキー */
-        public static final String EMAIL = "email";
+        /** ログイン済みフラグ */
+        public static final String USER_LOGGED = "userLogged";
 
-        /** 緯度キー */
-        public static final String LATITUDE = "latitude";
+        /** ユーザ更新日時 */
+        public static final String USER_UPDATE_TIME = "userUpdateTime";
 
-        /** 経度キー */
-        public static final String LONGITUDE = "longitude";
+        /** ルームID */
+        public static final String ROOM_ID = "roomId";
 
-        /** 位置情報リストキー */
-        public static final String LOCATIONS = "locations";
+        /** ルーム名 */
+        public static final String ROOM_NAME = "roomName";
+
+        /** ルームキー */
+        public static final String ROOM_KEY = "roomKey";
+
+        /** オーナーID */
+        public static final String OWNER_ID = "ownerId";
+
+        /** オーナー名 */
+        public static final String OWNER_NAME = "ownerName";
+
+        /** ルーム更新日時 */
+        public static final String ROOM_UPDATE_TIME = "roomUpdateTime";
     }
 
-    /**
-     * エンコーディング定数
-     *
-     */
-    public class Encoding {
-        /** UTF-8 */
-        public static final String UTF_8 = "UTF-8";
+    public class JSONKey {
+        /** ルームデータ配列 */
+        public static final String ROOM_DATAS = "roomDatas";
+
+        /** ルームデータ数 */
+        public static final String ROOM_DATA_NUM = "roomDataNum";
+
+        /** 位置データ配列 */
+        public static final String LOCATION_DATAS = "locationDatas";
     }
 
     /**
@@ -89,40 +110,52 @@ public class CommonConstants {
      *
      */
     public class LoaderId {
-        /** 初期設定ID */
-        public static final int INIT = 0;
+        /** ユーザ登録ID */
+        public static final int REGIST_USER = 1;
+
+        /** ユーザ削除ID */
+        public static final int DELETE_USER = 2;
+
+        /** ログインID */
+        public static final int LOGIN = 3;
+
+        /** ログアウトID */
+        public static final int LOGOUT = 4;
+
+        /** 新規ルームID */
+        public static final int NEW_ROOM = 5;
 
         /** 入室ID */
-        public static final int ENTER = 1;
+        public static final int ENTER_ROOM = 6;
 
         /** 退室ID */
-        public static final int EXIT = 2;
+        public static final int EXIT_ROOM = 7;
 
-        /** 位置情報設定ID */
-        public static final int SET_LOCATION = 3;
+        /** ルームリストID */
+        public static final int ROOM_LIST = 8;
+
+        /** 位置情報取得ID */
+        public static final int GET_LOCATION = 9;
     }
 
     /**
-     * インターフェース名定数
+     * Extraキー定数
      *
      */
-    public class IntefaceName {
-        /** WLAN0 */
-        public static final String WLAN0 = "wlan0";
+    public class ExtraKey {
+        /** ユーザデータ */
+        public static final String USER_DATA = "userData";
+
+        /** ルームデータ */
+        public static final String ROOM_DATA = "roomData";
     }
 
     /**
-     * 要求コード定数
+     * エンコーディング
      *
      */
-    public class RequestCode {
-        /** 設定画面 */
-        public static final int SETTINGS = 1;
-
-        /** マップ画面 */
-        public static final int MAP = 2;
-
-        /** 接続エラー解決要求 */
-        public static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    public class Encoding {
+        /** UTF-8 */
+        public static final String UTF_8 = "UTF-8";
     }
 }

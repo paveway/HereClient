@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">ココにイル</string>
-    <string name="settings_menu">設定</string>
+    <string name="app_name">ここにいる</string>
 
-    <string name="main_room_no_button">ルーム選択</string>
-    <string name="main_room_no_label">ルームNo</string>
-    <string name="main_password_label">パスワード</string>
-    <string name="main_nickname_label">ニックネーム</string>
-    <string name="main_enter_button">入室</string>
-    <string name="main_exit_button">退室</string>
-    <string name="main_clear_button">クリア</string>
+    <string name="menu_info">バージョン情報</string>
+    <string name="menu_delete_user">ユーザ削除</string>
 
-    <string name="map_start_button">開始</string>
+    <!-- バージョン情報ダイアログ -->
+    <string name="info_dialog_title">バージョン情報</string>
+    <string name="info_dialog_message_prefix">ここにいる\nVer.</string>
+    <string name="info_dialog_message_suffix">\nCopyright(C) paveway.info. All rights reserved.</string>
+    <string name="info_dialog_positive_button">閉じる</string>
 
 </resources>

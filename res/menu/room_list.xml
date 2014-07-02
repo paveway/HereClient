@@ -4,8 +4,8 @@
     tools:context="info.paveway.hereclient.MainActivity" >
 
     <item
-        android:id="@+id/menu_info"
-        android:title="@string/menu_info"
+        android:id="@+id/menu_delete_user"
+        android:title="@string/menu_delete_user"
         app:showAsAction="never"/>
 
 </menu>
