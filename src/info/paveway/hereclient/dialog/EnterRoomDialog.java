@@ -1,22 +1,28 @@
 package info.paveway.hereclient.dialog;
 
 import info.paveway.hereclient.CommonConstants.ExtraKey;
-import info.paveway.hereclient.CommonConstants.HttpKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
+import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.MapActivity;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.RoomData;
-import info.paveway.hereclient.loader.EnterRoomLoaderCallbacks;
+import info.paveway.hereclient.data.UserData;
+import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -35,6 +41,12 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
     /** ロガー */
     private Logger mLogger = new Logger(EnterRoomDialog.class);
 
+    /** ハンドラー */
+    private Handler mHandler = new Handler();
+
+    /** ユーザデータ */
+    private UserData mUserData;
+
     /** ルームデータ */
     private RoomData mRoomData;
 
@@ -46,9 +58,10 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
      *
      * @return インスタンス
      */
-    public static EnterRoomDialog newInstance(RoomData roomData) {
+    public static EnterRoomDialog newInstance(UserData userData, RoomData roomData) {
         EnterRoomDialog instance = new EnterRoomDialog();
         Bundle args = new Bundle();
+        args.putSerializable(ExtraKey.USER_DATA, userData);
         args.putSerializable(ExtraKey.ROOM_DATA, roomData);
         instance.setArguments(args);
         return instance;
@@ -64,6 +77,7 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mLogger.d("IN");
 
+        mUserData = (UserData)getArguments().getSerializable(ExtraKey.USER_DATA);
         mRoomData = (RoomData)getArguments().getSerializable(ExtraKey.ROOM_DATA);
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -116,20 +130,19 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
             return;
         }
 
-        // ログイン処理を行う。
+        // 入室処理を行う。
         // パラメータを生成する。
         Bundle params = new Bundle();
-        params.putString(HttpKey.URL,       Url.ENTER_ROOM);
-        params.putString(HttpKey.ROOM_NAME, mRoomData.getName());
-        params.putString(HttpKey.ROOM_KEY,  roomKey);
+        params.putString(ParamKey.URL,       Url.ENTER_ROOM);
+        params.putString(ParamKey.ROOM_NAME, mRoomData.getName());
+        params.putString(ParamKey.ROOM_KEY,  roomKey);
+        params.putString(ParamKey.USER_ID,   String.valueOf(mUserData.getId()));
+        params.putString(ParamKey.USER_NAME, mUserData.getName());
 
         // 入室ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.ENTER_ROOM, params, new EnterRoomLoaderCallbacks(
+                LoaderId.ENTER_ROOM, params, new HttpPostLoaderCallbacks(
                         getActivity(), new EnterRoomOnReceiveResponseListener()));
-
-        // 終了する。
-        dismiss();
 
         mLogger.d("OUT(OK)");
     }
@@ -166,11 +179,36 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
         public void onReceive(String response, Bundle bundle) {
             mLogger.d("IN response=[" + response + "]");
 
-            // マップ画面を表示する。
-            RoomData roomData = new RoomData();
-            Intent intent = new Intent(getActivity(), MapActivity.class);
-            intent.putExtra(ExtraKey.ROOM_DATA, roomData);
-            startActivity(intent);
+            try {
+                JSONObject json = new JSONObject(response);
+
+                // ステータスを取得する。
+                boolean status = json.getBoolean(ParamKey.STATUS);
+
+                // 登録成功の場合
+                if (status) {
+                    // ダイアログを閉じる。
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            dismiss();
+                        }
+                    });
+
+                    // マップ画面を表示する。
+                    Intent intent = new Intent(getActivity(), MapActivity.class);
+                    intent.putExtra(ExtraKey.USER_DATA, mUserData);
+                    intent.putExtra(ExtraKey.ROOM_DATA, mRoomData);
+                    startActivity(intent);
+
+            // エラーの場合
+            } else {
+                Toast.makeText(getActivity(), "入室できませんでした", Toast.LENGTH_SHORT).show();
+            }
+        } catch (JSONException e) {
+            mLogger.e(e);
+            Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
+        }
 
             mLogger.d("OUT(OK)");
         }

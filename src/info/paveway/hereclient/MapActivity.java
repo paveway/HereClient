@@ -1,22 +1,54 @@
 package info.paveway.hereclient;
 
 import info.paveway.hereclient.CommonConstants.ExtraKey;
-import info.paveway.hereclient.CommonConstants.HttpKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
+import info.paveway.hereclient.CommonConstants.ParamKey;
+import info.paveway.hereclient.CommonConstants.RequestCode;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.ExitRoomLoaderCallbacks;
-import info.paveway.hereclient.loader.LogoutLoaderCallbacks;
+import info.paveway.hereclient.dialog.ErrorDialogFragment;
+import info.paveway.hereclient.dialog.ExitRoomDialog;
+import info.paveway.hereclient.dialog.LogoutDialog;
+import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.Dialog;
 import android.content.Intent;
+import android.content.IntentSender;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
+import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 
 /**
  * ここにいるクライアント
@@ -30,11 +62,42 @@ public class MapActivity extends ActionBarActivity {
     /** ロガー */
     private Logger mLogger = new Logger(MapActivity.class);
 
+    /** リソース */
+    protected Resources mResources;
+
+    private ListView mDrawerList;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
+
     /** ユーザデータ */
     private UserData mUserData;
 
     /** ルームデータ */
     private RoomData mRoomData;
+
+    /** ロケーションクライアント */
+    private LocationClient mLocationClient;
+
+    /** ロケーションリクエスト */
+    private LocationRequest mLocationRequest;
+
+    /** ロケーションリスナー */
+    private LocationListener mLocationListener;
+
+    /** 位置情報をリクエスト済みかどうか(onPause->onResume対策) */
+    boolean mLocationUpdatesRequested = false;
+
+    /** Googleマップ */
+    private GoogleMap mGoogleMap;
+
+    /** マップ初期化済みフラグ */
+    private boolean mInitedMap;
+
+    /** 開始フラグ */
+    private boolean mStartFlg;
+
+    /** 処理中フラグ */
+    private static boolean mProcessingFlg = false;
 
     /**
      * 生成された時に呼び出される。
@@ -84,79 +147,602 @@ public class MapActivity extends ActionBarActivity {
             return;
         }
 
-        // ボタンにリスナーを設定する。
-        ((Button)findViewById(R.id.exitRoomButton)).setOnClickListener(new ButtonOnClickListener());
-        ((Button)findViewById(R.id.logoutButton)).setOnClickListener(new ButtonOnClickListener());
+        // リソースを取得する。
+        mResources = getResources();
+
+        String[] drawerListItems = {
+                "退室",
+                "ログアウト"};
+        mDrawerList = (ListView)findViewById(R.id.drawerList);
+        mDrawerList.setAdapter(
+                new ArrayAdapter<String>(
+                    this, android.R.layout.simple_list_item_1, drawerListItems));
+        mDrawerList.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                // 退室の場合
+                case 0: {
+                    // 退室ダイアログを表示する。
+                    FragmentManager manager = getSupportFragmentManager();
+                    ExitRoomDialog dialog = ExitRoomDialog.newInstance(mUserData, mRoomData);
+                    dialog.setCancelable(false);
+                    dialog.show(manager, ExitRoomDialog.class.getSimpleName());
+                    break;
+                }
+
+                // ログアウトの場合
+                case 1: {
+                    // ログアウトダイアログを表示する。
+                    FragmentManager manager = getSupportFragmentManager();
+                    LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
+                    looutDialog.setCancelable(false);
+                    looutDialog.show(manager, LogoutDialog.class.getSimpleName());
+                    break;
+                }
+                }
+            }
+        });
+
+        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawerLayout);
+        mDrawerToggle =
+                new ActionBarDrawerToggle(
+                    this, mDrawerLayout, R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerClosed(View view) {
+                supportInvalidateOptionsMenu();
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                supportInvalidateOptionsMenu();
+            }
+        };
+
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        // アプリアイコンのクリック有効化
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        // ロケーションリクエストを生成する。
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(30 * 1000);
+        mLocationRequest.setFastestInterval(30 * 1000);
+
+        // ロケーションリスナーを生成する。
+        mLocationListener = new LocationListenerImpl();
+
+        // ロケーションクライアントを生成する。
+        mLocationClient =
+                new LocationClient(
+                        MapActivity.this,
+                        new ConnectionCallbacksImpl(),
+                        new OnConnectionFailedListenerImpl());
+
+        /** マップ初期化済みフラグをクリアする。 */
+        mInitedMap = false;
+
+        // 開始フラグをクリアする。
+        mStartFlg = true;
+
+        // マップフラグメントを取得する。
+        MapFragment mapFragment = (MapFragment)(getFragmentManager().findFragmentById(R.id.map));
+        try {
+            // マップオブジェクトを取得する。
+            mGoogleMap = mapFragment.getMap();
+
+            // Activityが初めて生成された場合
+            if (savedInstanceState == null) {
+                // フラグメントを保存する。
+                mapFragment.setRetainInstance(true);
+
+                // 地図の初期設定を行う。
+                mapInit();
+            }
+        } catch (Exception e) {
+            mLogger.e(e);
+            finish();
+            return;
+        }
 
         mLogger.d("OUT(OK)");
     }
 
     /**
-     * ボタンクリックリスナークラス
+     * 生成する前に呼び出される。
      *
+     * @param savedInstanceState 保存された時のインスタンスの状態
      */
-    private class ButtonOnClickListener implements OnClickListener {
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        mLogger.d("IN");
 
-        /** ロガー */
-        private Logger mLogger = new Logger(ButtonOnClickListener.class);
+        super.onPostCreate(savedInstanceState);
+        mDrawerToggle.syncState();
 
-        /**
-         * ボタンがクリックされた時に呼び出される。
-         *
-         * @param v クリックされたボタン
-         */
-        @Override
-        public void onClick(View v) {
-            mLogger.d("IN");
+        mLogger.d("OUT(OK)");
+    }
 
-            // ボタンにより処理を判別する。
-            switch (v.getId()) {
-            // 退室ボタンの場合
-            case R.id.exitRoomButton: {
-                // パラメータを生成する。
-                Bundle params = new Bundle();
-                params.putString(HttpKey.URL,       Url.EXIT_ROOM);
-                params.putString(HttpKey.USER_ID, String.valueOf(mUserData.getId()));
+    /**
+     * コンフィグレーションが変更された時に呼び出される。
+     *
+     * @param newConfig 新しいコンフィグ
+     */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        mLogger.d("IN");
 
-                // ログアウトローダーをロードする。
-                getSupportLoaderManager().restartLoader(
-                        LoaderId.LOGOUT, params, new LogoutLoaderCallbacks(
-                                MapActivity.this, new LogoutOnReceiveResponseListener()));
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * メニューが生成された時に呼び出される。
+     *
+     * @param menu メニュー
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        mLogger.d("IN");
+
+        getMenuInflater().inflate(R.menu.map, menu);
+
+        mLogger.d("OUT(OK)");
+        return true;
+    }
+
+    /**
+     * メニューが選択された時に呼び出される。
+     *
+     * @param item 選択されたメニュー
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        mLogger.d("IN");
+
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        switch (item.getItemId()) {
+        // 退室ルームの場合
+        case R.id.menu_exit_room: {
+            // 退室ダイアログを表示する。
+            FragmentManager manager = getSupportFragmentManager();
+            ExitRoomDialog dialog = ExitRoomDialog.newInstance(mUserData, mRoomData);
+            dialog.setCancelable(false);
+            dialog.show(manager, ExitRoomDialog.class.getSimpleName());
+            return true;
+        }
+
+        // ログアウトの場合
+        case R.id.menu_logout: {
+            // ログアウトダイアログを表示する。
+            FragmentManager manager = getSupportFragmentManager();
+            LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
+            looutDialog.setCancelable(false);
+            looutDialog.show(manager, LogoutDialog.class.getSimpleName());
+            return true;
+        }
+        }
+
+        mLogger.d("OUT(OK)");
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * 他の画面の呼び出しからの戻った時に呼び出される。
+     *
+     * @param requestCode 要求コード
+     * @param resultCode 結果コード
+     * @param intent データ
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        mLogger.i("IN requestCode=[" + requestCode + "] resultCode=[" + resultCode + "]");
+
+        // 要求コードにより処理を判別する。
+        switch (requestCode) {
+        // 接続エラー解決要求の場合
+        case RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST:
+            // 結果コードにより処理を判別する。
+            switch (resultCode) {
+            // 正常終了の場合
+            case RESULT_OK:
+                // 接続済みの場合
+                if (isServicesConnected()) {
+                    // ロケーション更新を開始する。
+                    startLocationUpdates();
+
+                    // ロケーション更新を要求済みにする。
+                    mLocationUpdatesRequested = true;
+                }
+                break;
+
+            // 上記以外
+            default:
+                // 何もしない。
+                mLogger.w("Result NG.");
                 break;
             }
+            break;
 
-            // ログアウトボタンの場合
-            case R.id.logoutButton: {
-                // パラメータを生成する。
-                Bundle params = new Bundle();
-                params.putString(HttpKey.URL,       Url.EXIT_ROOM);
-                params.putString(HttpKey.ROOM_ID, String.valueOf(mRoomData.getId()));
-                params.putString(HttpKey.USER_ID, String.valueOf(mUserData.getId()));
+        // 上記以外
+        default:
+            // 何もしない。
+            mLogger.w("Unknown Request Code.");
+            break;
+        }
 
-                // 退室ローダーをロードする。
-                getSupportLoaderManager().restartLoader(
-                        LoaderId.EXIT_ROOM, params, new ExitRoomLoaderCallbacks(
-                                MapActivity.this, new ExitRoomOnReceiveResponseListener()));
-                break;
-            }
-            }
+        mLogger.i("OUT(OK)");
+    }
 
+    /**
+     * 開始した時に呼び出される。
+     */
+    @Override
+    protected void onStart() {
+        mLogger.i("IN");
+
+        // スーパークラスのメソッドを呼び出す。
+        super.onStart();
+
+        // 未接続の場合
+        if (!mLocationClient.isConnected() && !mLocationClient.isConnecting()) {
+            // ロケーションクライアントを接続する。
+            mLocationClient.connect();
+        }
+
+        mLogger.i("OUT(OK)");
+    }
+
+    /**
+     * 再開した時に呼び出される。
+     */
+    @Override
+    protected void onResume() {
+        mLogger.i("IN");
+
+        // スーパークラスのメソッドを呼び出す。
+        super.onResume();
+
+        // 接続済みの場合
+        if (mLocationUpdatesRequested && mLocationClient.isConnected()) {
+            // 更新を開始する。
+            startLocationUpdates();
+        }
+
+        mLogger.i("OUT(OK)");
+    }
+
+    /**
+     * 一時停止した時に呼び出される。
+     */
+    @Override
+    protected void onPause() {
+        mLogger.i("IN");
+
+        // 接続済みの場合
+        if (mLocationClient.isConnected()) {
+            // 更新を停止する。
+            stopLocationUpdates();
+        }
+
+        // スーパークラスのメソッドを呼び出す。
+        super.onPause();
+
+        mLogger.i("OUT(OK)");
+    }
+
+    /**
+     * 停止した時に呼び出される。
+     */
+    @Override
+    public void onStop() {
+        mLogger.i("IN");
+
+        // 切断する。
+        mLocationClient.disconnect();
+
+        // スーパークラスのメソッドを呼び出す。
+        super.onStop();
+
+        mLogger.i("OUT(OK)");
+    }
+
+
+    /**
+     * 戻るボタンが押された時に呼び出される。
+     */
+    @Override
+    public void onBackPressed() {
+        // ログアウトダイアログを表示する。
+        FragmentManager manager = getSupportFragmentManager();
+        LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
+        looutDialog.setCancelable(false);
+        looutDialog.show(manager, LogoutDialog.class.getSimpleName());
+    }
+
+    /**
+     * リソース文字列を返却する。
+     *
+     * @param id 文字列のリソースID
+     * @return リソース文字列
+     */
+    protected String getResourceString(int id) {
+        return mResources.getString(id);
+    }
+
+    /**
+     * ロケーション更新を開始する。
+     */
+    private void startLocationUpdates() {
+        mLogger.d("IN");
+
+        // 接続済みの場合
+        if (mLocationClient.isConnected()) {
+            // ロケーション更新を要求する。
+            mLocationClient.requestLocationUpdates(mLocationRequest, mLocationListener);
+        }
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * ロケーション更新を停止する。
+     */
+    private void stopLocationUpdates() {
+        mLogger.d("IN");
+
+        // ロケーション更新を解除する。
+        mLocationClient.removeLocationUpdates(mLocationListener);
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * 接続済みかチェックする。
+     *
+     * @return 接続状況 true:接続済み / false:未接続
+     */
+    private boolean isServicesConnected() {
+        mLogger.d("IN");
+
+        // Google Play Servicesが利用可能かどうかチェック
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (ConnectionResult.SUCCESS == resultCode) {
+            // Google Play Servicesが利用可能な場合
             mLogger.d("OUT(OK)");
+            return true;
+
+        } else {
+            // Google Play Servicesが何らかの理由で利用できない場合
+            // 解決策が書いてあるダイアログが貰えるので、DialogFragmentで表示する
+            showErrorDialog(resultCode, 0);
+            mLogger.d("OUT(NG)");
+            return false;
+        }
+
+    }
+
+    /**
+     * 地図の初期化を行う。
+     */
+    private void mapInit() {
+        mLogger.d("IN");
+
+        // 地図タイプを設定する。
+        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        // 現在位置ボタンの表示する。
+        mGoogleMap.setMyLocationEnabled(true);
+
+        // マーカークリックリスナーを設定する。
+//        mGoogleMap.setOnMarkerClickListener(new OnMarkerClickListenerImpl());
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * エラーダイアログを表示します。
+     *
+     * @param errorCode エラーコード
+     * @param requestCode リクエストコード 未使用の場合0
+     */
+    protected void showErrorDialog(int errorCode, int requestCode) {
+        // Google Play servicesからエラーダイアログを受け取る
+        Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(errorCode, this, requestCode);
+
+        // エラーダイアログを取得できた場合
+        if (errorDialog != null) {
+            ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+            errorFragment.setDialog(errorDialog);
+            errorFragment.show(getSupportFragmentManager(), ErrorDialogFragment.TAG);
         }
     }
 
     /**************************************************************************/
     /**
-     * 退室レスポンス受信リスナークラス
+     * 接続コールバッククラス
      *
      */
-    private class ExitRoomOnReceiveResponseListener implements OnReceiveResponseListener {
+    private class ConnectionCallbacksImpl implements ConnectionCallbacks {
 
         /** ロガー */
-        private Logger mLogger = new Logger(ExitRoomOnReceiveResponseListener.class);
+        private Logger mLogger = new Logger(ConnectionCallbacksImpl.class);
 
         /**
-         * レスポンス受信した時に呼び出される。
+         * 接続した時に呼び出される。
+         *
+         * @param bundle バンドル
+         */
+        @Override
+        public void onConnected(Bundle bundle) {
+            mLogger.i("IN");
+
+            // ロケーション更新を開始する。
+            startLocationUpdates();
+
+            // ロケーション更新を要求済みに設定する。
+            mLocationUpdatesRequested = true;
+
+            // マップ未初期化の場合
+            if (!mInitedMap) {
+                // 現在位置を取得する。
+                Location location = mLocationClient.getLastLocation();
+
+                // 現在位置、ズーム設定を行う。
+                CameraPosition camerapos =
+                    new CameraPosition.Builder().target(
+                        new LatLng(location.getLatitude(), location.getLongitude())).zoom(15.0f).build();
+
+                // 地図の中心を変更する。
+                mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(camerapos));
+
+                // マップ初期化済みとする。
+                mInitedMap = true;
+            }
+
+            mLogger.i("OUT(OK)");
+        }
+
+        /**
+         * 切断した時に呼び出される。
+         */
+        @Override
+        public void onDisconnected() {
+            mLogger.i("IN");
+
+            // ロケーション更新を停止する。
+            stopLocationUpdates();
+
+            // ロケーション更新を未要求に設定する。
+            mLocationUpdatesRequested = false;
+
+            mLogger.i("OUT(OK)");
+        }
+    }
+
+
+
+
+    /**************************************************************************/
+    /**
+     * 接続失敗リスナークラス
+     *
+     */
+    private class OnConnectionFailedListenerImpl implements OnConnectionFailedListener {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(OnConnectionFailedListenerImpl.class);
+
+        /**
+         * 接続が失敗した時に呼び出される。
+         *
+         * @param connectionResult 接続結果
+         */
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+            mLogger.i("IN");
+
+            // 解決策がある場合
+            if (connectionResult.hasResolution()) {
+                try {
+                    // エラーを解決してくれるインテントを投げる。
+                    connectionResult.startResolutionForResult(
+                        MapActivity.this, RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                } catch (IntentSender.SendIntentException e) {
+                    mLogger.e(e);
+                }
+
+            // 解決策がない場合
+            } else {
+                // 解決策がない場合はエラーダイアログを出します
+                showErrorDialog(
+                    connectionResult.getErrorCode(),
+                    RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            }
+
+            mLogger.i("OUT(OK)");
+        }
+    }
+
+    /**************************************************************************/
+    /**
+     * ロケーションリスナークラス
+     *
+     */
+    private class LocationListenerImpl implements LocationListener {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(LocationListenerImpl.class);
+
+        /**
+         * ロケーションが変更された時に呼び出される。
+         *
+         * @param location ロケーションオブジェクト
+         */
+        @Override
+        public void onLocationChanged(Location location) {
+            mLogger.i("IN");
+
+            // 開始の場合
+            if (mStartFlg) {
+                mLogger.i("start.");
+
+                // 処理中ではない場合
+//                if (!mProcessingFlg) {
+                    mLogger.i("not processing.");
+
+                    // 処理中に設定する。
+                    mProcessingFlg = true;
+
+                    // ローダーを初期化する。
+                    Bundle bundle = new Bundle();
+
+                    bundle.putString(ParamKey.URL,       Url.SEND_LOCATION);
+                    bundle.putString(ParamKey.ROOM_NAME, mRoomData.getName());
+                    bundle.putString(ParamKey.ROOM_KEY,  mRoomData.getPassword());
+                    bundle.putString(ParamKey.USER_ID,   String.valueOf(mUserData.getId()));
+                    bundle.putString(ParamKey.USER_NAME, mUserData.getName());
+                    bundle.putString(ParamKey.LATITUDE,  String.valueOf(location.getLatitude()));
+                    bundle.putString(ParamKey.LONGITUDE, String.valueOf(location.getLongitude()));
+
+                    // マーカーを設定する。
+//                    setMarker(mUserId, mNickname, location.getLatitude(), location.getLongitude());
+
+                    // ローダーを再スタートする。
+                    getSupportLoaderManager().restartLoader(
+                            LoaderId.SEND_LOCATION,
+                            bundle,
+                            new HttpPostLoaderCallbacks(
+                                MapActivity.this, new SendLocationOnReceiveResponseListener()));
+//                } else {
+//                    mLogger.i("processing.");
+//                }
+            } else {
+                mLogger.i("stop.");
+            }
+
+            mLogger.i("OUT(OK)");
+        }
+    }
+
+    /**************************************************************************/
+    /**
+     * 位置情報レスポンス受信リスナークラス
+     *
+     */
+    private class SendLocationOnReceiveResponseListener implements OnReceiveResponseListener {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(SendLocationOnReceiveResponseListener.class);
+
+        /**
+         * レスポンスを受信した時に呼び出される。
          *
          * @param response レスポンス文字列
          * @param bundle バンドル
@@ -165,35 +751,13 @@ public class MapActivity extends ActionBarActivity {
         public void onReceive(String response, Bundle bundle) {
             mLogger.d("IN");
 
-            // 終了する。
-            finish();
-
-            mLogger.d("OUT(OK)");
-        }
-    }
-
-    /**************************************************************************/
-    /**
-     * ログアウトレスポンス受信リスナークラス
-     *
-     */
-    private class LogoutOnReceiveResponseListener implements OnReceiveResponseListener {
-
-        /** ロガー */
-        private Logger mLogger = new Logger(LogoutOnReceiveResponseListener.class);
-
-        /**
-         * レスポンス受信した時に呼び出される。
-         *
-         * @param response レスポンス文字列
-         * @param bundle バンドル
-         */
-        @Override
-        public void onReceive(String response, Bundle bundle) {
-            mLogger.d("IN");
-
-            // 終了する。
-            finish();
+            try {
+                // JSON文字列を生成する。
+                JSONObject jsonObject = new JSONObject(response);
+            } catch (JSONException e) {
+                mLogger.e(e);
+            }
+            mProcessingFlg = false;
 
             mLogger.d("OUT(OK)");
         }

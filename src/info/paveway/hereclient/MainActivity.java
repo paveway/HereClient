@@ -32,6 +32,8 @@ public class MainActivity extends ActionBarActivity {
 
         // スーパークラスのメソッドを呼び出す。
         super.onCreate(savedInstanceState);
+
+        // レイアウトを設定する。
         setContentView(R.layout.activity_main);
 
         // ログインダイアログを表示する。

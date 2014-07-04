@@ -1,11 +1,16 @@
 package info.paveway.hereclient.loader;
 
+import info.paveway.hereclient.dialog.LoginDialog;
+import info.paveway.hereclient.dialog.ProgressDialogEx;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBarActivity;
 import android.widget.Toast;
 
 /**
@@ -22,6 +27,9 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     /** コンテキスト */
     protected Context mContext;
 
+    /** ハンドラー */
+    protected Handler mHandler = new Handler();
+
     /** ID */
     protected int mId;
 
@@ -30,6 +38,9 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
 
     /** レスポンス受信リスナー */
     protected OnReceiveResponseListener mListener;
+
+    /** 処理中ダイアログ */
+    private ProgressDialogEx mProgressDialog;
 
     /**
      * コンストラクタ
@@ -56,6 +67,14 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     public Loader<String> onCreateLoader(int id, Bundle bundle) {
         mLogger.i("IN id=[" + id + "]");
 
+        if (mContext instanceof ActionBarActivity) {
+            // 処理中ダイアログを表示する。
+            FragmentManager manager = ((ActionBarActivity)mContext).getSupportFragmentManager();
+            mProgressDialog = ProgressDialogEx.newInstance("処理中", "しばらくお待ちください");
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.show(manager, LoginDialog.class.getSimpleName());
+        }
+
         mId = id;
         mBundle = bundle;
         Loader<String> loader = createLoader(bundle);
@@ -74,6 +93,16 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     @Override
     public void onLoadFinished(Loader<String> loader, String response) {
         mLogger.i("IN response=[" + response + "]");
+
+        if (mContext instanceof ActionBarActivity) {
+            // 処理中ダイアログを閉じる。
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mProgressDialog.dismiss();
+                }
+            });
+        }
 
         // 対象のローダーの場合
         if (loader.getId() == mId) {

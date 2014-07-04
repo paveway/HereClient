@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="info.paveway.hereclient"
     android:versionCode="1"
-    android:versionName="1.0.20140702" >
+    android:versionName="1.0.20140704" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
     <!-- Google Maps Android API のアクセス許可 -->

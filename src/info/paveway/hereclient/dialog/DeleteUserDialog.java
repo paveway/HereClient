@@ -1,11 +1,11 @@
 package info.paveway.hereclient.dialog;
 
 import info.paveway.hereclient.CommonConstants.ExtraKey;
-import info.paveway.hereclient.CommonConstants.HttpKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
+import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.DeleteUserLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 
@@ -103,13 +103,13 @@ public class DeleteUserDialog extends AbstractBaseDialogFragment {
         // ユーザ削除処理を行う。
         // パラメータを生成する。
         Bundle params = new Bundle();
-        params.putString(HttpKey.URL,           Url.DELETE_USER);
-        params.putString(HttpKey.USER_NAME,     mUserData.getName());
-        params.putString(HttpKey.USER_PASSWORD, mUserData.getPassword());
+        params.putString(ParamKey.URL,           Url.DELETE_USER);
+        params.putString(ParamKey.USER_NAME,     mUserData.getName());
+        params.putString(ParamKey.USER_PASSWORD, mUserData.getPassword());
 
         // ユーザ削除ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.DELETE_USER, params, new DeleteUserLoaderCallbacks(
+                LoaderId.DELETE_USER, params, new HttpPostLoaderCallbacks(
                         getActivity(), new DeleteUserOnReceiveResponseListener()));
 
         mLogger.d("OUT(OK)");
@@ -151,7 +151,7 @@ public class DeleteUserDialog extends AbstractBaseDialogFragment {
                 JSONObject json = new JSONObject(response);
 
                 // ステータスを取得する。
-                boolean status = json.getBoolean(HttpKey.STATUS);
+                boolean status = json.getBoolean(ParamKey.STATUS);
 
                 // 削除成功の場合
                 if (status) {

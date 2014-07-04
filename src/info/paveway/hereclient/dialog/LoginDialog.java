@@ -1,15 +1,14 @@
 package info.paveway.hereclient.dialog;
 
 import info.paveway.hereclient.CommonConstants.ExtraKey;
-import info.paveway.hereclient.CommonConstants.HttpKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
+import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.RoomListActivity;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.LoginLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
-import info.paveway.hereclient.loader.RegistUserLoaderCallbacks;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
 
@@ -67,11 +66,13 @@ public class LoginDialog extends AbstractBaseDialogFragment {
         mLogger.d("IN");
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View rootView = inflater.inflate(R.layout.dialog_login_user, null);
+        View rootView = inflater.inflate(R.layout.dialog_login, null);
 
+        // 入力項目を取得する。
         mUserNameValue = (EditText)rootView.findViewById(R.id.userNameValue);
         mPasswordValue = (EditText)rootView.findViewById(R.id.passwordValue);
 
+        // ログインダイアログを設定する。
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("ようこそ");
         builder.setPositiveButton("ログイン", null);
@@ -132,13 +133,13 @@ public class LoginDialog extends AbstractBaseDialogFragment {
         // ログイン処理を行う。
         // パラメータを生成する。
         Bundle params = new Bundle();
-        params.putString(HttpKey.URL,           Url.LOGIN);
-        params.putString(HttpKey.USER_NAME,     userName);
-        params.putString(HttpKey.USER_PASSWORD, password);
+        params.putString(ParamKey.URL,           Url.LOGIN);
+        params.putString(ParamKey.USER_NAME,     userName);
+        params.putString(ParamKey.USER_PASSWORD, password);
 
         // ログインローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.LOGIN, params, new LoginLoaderCallbacks(
+                LoaderId.LOGIN, params, new HttpPostLoaderCallbacks(
                         getActivity(), new LoginOnReceiveResponseListener()));
 
         mLogger.d("OUT(OK)");
@@ -162,13 +163,13 @@ public class LoginDialog extends AbstractBaseDialogFragment {
         // ユーザ登録処理を行う。
         // パラメータを生成する。
         Bundle params = new Bundle();
-        params.putString(HttpKey.URL,           Url.REGIST_USER);
-        params.putString(HttpKey.USER_NAME,     userName);
-        params.putString(HttpKey.USER_PASSWORD, password);
+        params.putString(ParamKey.URL,           Url.REGIST_USER);
+        params.putString(ParamKey.USER_NAME,     userName);
+        params.putString(ParamKey.USER_PASSWORD, password);
 
         // ユーザ登録ローダーを表示する。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.REGIST_USER, params, new RegistUserLoaderCallbacks(
+                LoaderId.REGIST_USER, params, new HttpPostLoaderCallbacks(
                         getActivity(), new RegistUserOnReceiveResponseListener()));
 
         mLogger.d("OUT(OK)");
@@ -206,11 +207,19 @@ public class LoginDialog extends AbstractBaseDialogFragment {
         public void onReceive(String response, Bundle bundle) {
             mLogger.d("IN response=[" + response + "]");
 
+//            // 処理中ダイアログを閉じる。
+//            mHandler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mProgressDialog.dismiss();
+//                }
+//            });
+
             try {
                 JSONObject json = new JSONObject(response);
 
                 // ステータスを取得する。
-                boolean status = json.getBoolean(HttpKey.STATUS);
+                boolean status = json.getBoolean(ParamKey.STATUS);
 
                 // ログイン成功の場合
                 if (status) {
@@ -219,10 +228,10 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
                     // ユーザデータを生成する。
                     UserData userData = new UserData();
-                    userData.setId(        json.getLong(  HttpKey.USER_ID));
-                    userData.setName(      json.getString(HttpKey.USER_NAME));
-                    userData.setPassword(  json.getString(HttpKey.USER_PASSWORD));
-                    userData.setUpdateTime(json.getLong(  HttpKey.USER_UPDATE_TIME));
+                    userData.setId(        json.getLong(  ParamKey.USER_ID));
+                    userData.setName(      json.getString(ParamKey.USER_NAME));
+                    userData.setPassword(  json.getString(ParamKey.USER_PASSWORD));
+                    userData.setUpdateTime(json.getLong(  ParamKey.USER_UPDATE_TIME));
 
                     // ルーム一覧画面を表示する。
                     Intent intent = new Intent(getActivity(), RoomListActivity.class);
@@ -266,7 +275,7 @@ public class LoginDialog extends AbstractBaseDialogFragment {
                 JSONObject json = new JSONObject(response);
 
                 // ステータスを取得する。
-                boolean status = json.getBoolean(HttpKey.STATUS);
+                boolean status = json.getBoolean(ParamKey.STATUS);
 
                 // 登録成功の場合
                 if (status) {
@@ -276,10 +285,10 @@ public class LoginDialog extends AbstractBaseDialogFragment {
                     // ユーザデータを生成する。
                     UserData userData = new UserData();
 
-                    userData.setId(        json.getLong(  HttpKey.USER_ID));
-                    userData.setName(      json.getString(HttpKey.USER_NAME));
-                    userData.setPassword(  json.getString(HttpKey.USER_PASSWORD));
-                    userData.setUpdateTime(json.getLong(  HttpKey.USER_UPDATE_TIME));
+                    userData.setId(        json.getLong(  ParamKey.USER_ID));
+                    userData.setName(      json.getString(ParamKey.USER_NAME));
+                    userData.setPassword(  json.getString(ParamKey.USER_PASSWORD));
+                    userData.setUpdateTime(json.getLong(  ParamKey.USER_UPDATE_TIME));
 
                     // ルーム一覧画面を表示する。
                     Intent intent = new Intent(getActivity(), RoomListActivity.class);

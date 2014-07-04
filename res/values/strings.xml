@@ -3,8 +3,17 @@
 
     <string name="app_name">ここにいる</string>
 
-    <string name="menu_info">バージョン情報</string>
+    <!-- メニュー項目 -->
+    <string name="menu_create_room">新規ルーム</string>
+    <string name="menu_update_room_list">更新</string>
+    <string name="menu_logout">ログアウト</string>
     <string name="menu_delete_user">ユーザ削除</string>
+    <string name="menu_info">バージョン情報</string>
+    <string name="menu_exit_room">退室</string>
+
+    <!-- ドロワー -->
+    <string name="drawer_open">開く</string>
+    <string name="drawer_close">閉じる</string>
 
     <!-- バージョン情報ダイアログ -->
     <string name="info_dialog_title">バージョン情報</string>

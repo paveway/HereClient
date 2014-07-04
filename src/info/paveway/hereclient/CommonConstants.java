@@ -44,16 +44,16 @@ public class CommonConstants {
         /** 退室URL */
         public static final String EXIT_ROOM = BASE + "exitRoom";
 
-        /** 位置情報取得URL */
-        public static final String GET_LOCATION = BASE + "getLocation";
+        /** 位置情報送信URL */
+        public static final String SEND_LOCATION = BASE + "sendLocation";
 
     }
 
     /**
-     * HTTPキー定数
+     * パラメータキー定数
      *
      */
-    public class HttpKey {
+    public class ParamKey {
         /** URLキー */
         public static final String URL = "url";
 
@@ -92,9 +92,13 @@ public class CommonConstants {
 
         /** ルーム更新日時 */
         public static final String ROOM_UPDATE_TIME = "roomUpdateTime";
-    }
 
-    public class JSONKey {
+        /** 緯度 */
+        public static final String LATITUDE = "latitude";
+
+        /** 軽度 */
+        public static final String LONGITUDE = "longitude";
+
         /** ルームデータ配列 */
         public static final String ROOM_DATAS = "roomDatas";
 
@@ -103,6 +107,9 @@ public class CommonConstants {
 
         /** 位置データ配列 */
         public static final String LOCATION_DATAS = "locationDatas";
+
+        /** 位置データ数 */
+        public static final String LOCATION_DATA_NUM = "locationDataNum";
     }
 
     /**
@@ -134,8 +141,8 @@ public class CommonConstants {
         /** ルームリストID */
         public static final int ROOM_LIST = 8;
 
-        /** 位置情報取得ID */
-        public static final int GET_LOCATION = 9;
+        /** 位置情報送信ID */
+        public static final int SEND_LOCATION = 9;
     }
 
     /**
@@ -157,5 +164,20 @@ public class CommonConstants {
     public class Encoding {
         /** UTF-8 */
         public static final String UTF_8 = "UTF-8";
+    }
+
+    /**
+     * 要求コード定数
+     *
+     */
+    public class RequestCode {
+        /** 設定画面 */
+        public static final int SETTINGS = 1;
+
+        /** マップ画面 */
+        public static final int MAP = 2;
+
+        /** 接続エラー解決要求 */
+        public static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     }
 }

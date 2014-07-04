@@ -1,6 +1,6 @@
 package info.paveway.hereclient.loader;
 
-import info.paveway.hereclient.CommonConstants.HttpKey;
+import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.log.Logger;
 
 import org.apache.http.client.HttpClient;
@@ -56,7 +56,7 @@ public class HttpGetLoader extends AsyncTaskLoader<String> {
         HttpClient httpClient = new DefaultHttpClient();
         try {
             // HTTP GETメソッドを生成する。
-            HttpGet httpGet = new HttpGet(mParams.getString(HttpKey.URL));
+            HttpGet httpGet = new HttpGet(mParams.getString(ParamKey.URL));
 
             // HTTP GETメソッドを実行し、レスポンス文字列を取得する。
             result = httpClient.execute(httpGet, new HttpResponseHandler());

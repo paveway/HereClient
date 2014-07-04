@@ -1,18 +1,14 @@
 package info.paveway.hereclient.dialog;
 
 import info.paveway.hereclient.CommonConstants.ExtraKey;
-import info.paveway.hereclient.CommonConstants.HttpKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
+import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
+import info.paveway.hereclient.RoomListActivity;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.DeleteUserLoaderCallbacks;
-import info.paveway.hereclient.loader.OnReceiveResponseListener;
+import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.log.Logger;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -20,7 +16,6 @@ import android.content.DialogInterface.OnShowListener;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
@@ -109,16 +104,16 @@ public class DeleteRoomDialog extends AbstractBaseDialogFragment {
         // ルーム削除処理を行う。
         // パラメータを生成する。
         Bundle params = new Bundle();
-        params.putString(HttpKey.URL,           Url.DELETE_ROOM);
-        params.putString(HttpKey.ROOM_NAME,     String.valueOf(mRoomData.getId()));
-        params.putString(HttpKey.ROOM_KEY,      mRoomData.getPassword());
-        params.putString(HttpKey.OWNER_ID,      String.valueOf(mUserData.getId()));
-        params.putString(HttpKey.OWNER_NAME,    mUserData.getName());
+        params.putString(ParamKey.URL,       Url.DELETE_ROOM);
+        params.putString(ParamKey.ROOM_NAME, mRoomData.getName());
+        params.putString(ParamKey.ROOM_KEY,  mRoomData.getPassword());
+        params.putString(ParamKey.USER_ID,   String.valueOf(mUserData.getId()));
+        params.putString(ParamKey.USER_NAME, mUserData.getName());
 
-        // ユーザ削除ローダーをロードする。
+        // ルーム削除ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.DELETE_USER, params, new DeleteUserLoaderCallbacks(
-                        getActivity(), new DeleteUserOnReceiveResponseListener()));
+                LoaderId.DELETE_USER, params, new HttpPostLoaderCallbacks(
+                        getActivity(), ((RoomListActivity)getActivity()).new DeleteRoomOnReceiveResponseListener()));
 
         mLogger.d("OUT(OK)");
     }
@@ -129,52 +124,9 @@ public class DeleteRoomDialog extends AbstractBaseDialogFragment {
     private void doCancelButton() {
         mLogger.d("IN");
 
+        // ダイアログを終了する。
         dismiss();
-//        getActivity().finish();
 
         mLogger.d("OUT(OK)");
-    }
-
-    /**************************************************************************/
-    /**
-     * ログインレスポンス受信リスナークラス
-     *
-     */
-    private class DeleteUserOnReceiveResponseListener implements OnReceiveResponseListener {
-
-        /** ロガー */
-        private Logger mLogger = new Logger(DeleteUserOnReceiveResponseListener.class);
-
-        /**
-         * レスポンス受信した時に呼び出される。
-         *
-         * @param response レスポンス文字列
-         * @param bundle バンドル
-         */
-        @Override
-        public void onReceive(String response, Bundle bundle) {
-            mLogger.d("IN response=[" + response + "]");
-
-            try {
-                JSONObject json = new JSONObject(response);
-
-                // ステータスを取得する。
-                boolean status = json.getBoolean(HttpKey.STATUS);
-
-                // 削除成功の場合
-                if (status) {
-                    getActivity().finish();
-
-                // エラーまたはログインできない場合
-                } else {
-                    Toast.makeText(getActivity(), "ユーザを削除できませんでした", Toast.LENGTH_SHORT).show();
-                }
-            } catch (JSONException e) {
-                mLogger.e(e);
-                Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
-            }
-
-            mLogger.d("OUT(OK)");
-        }
     }
 }
