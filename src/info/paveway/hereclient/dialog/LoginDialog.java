@@ -207,14 +207,6 @@ public class LoginDialog extends AbstractBaseDialogFragment {
         public void onReceive(String response, Bundle bundle) {
             mLogger.d("IN response=[" + response + "]");
 
-//            // 処理中ダイアログを閉じる。
-//            mHandler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    mProgressDialog.dismiss();
-//                }
-//            });
-
             try {
                 JSONObject json = new JSONObject(response);
 

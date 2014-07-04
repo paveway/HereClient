@@ -39,7 +39,7 @@ public class HttpPostLoaderCallbacks extends AbstractBaseLoaderCallbacks {
     protected Loader<String> createLoader(Bundle bundle) {
         mLogger.d("IN");
 
-        Loader<String> loader = new HttpGetLoader(mContext, bundle);
+        Loader<String> loader = new HttpPostLoader(mContext, bundle);
 
         mLogger.d("OUT(OK)");
         return loader;

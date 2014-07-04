@@ -14,6 +14,9 @@ import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,9 +49,12 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
  * ここにいるクライアント
@@ -65,8 +71,13 @@ public class MapActivity extends ActionBarActivity {
     /** リソース */
     protected Resources mResources;
 
+    /** ドロワーリスト */
     private ListView mDrawerList;
+
+    /** ドロワーレイアウト */
     private DrawerLayout mDrawerLayout;
+
+    /** ドロワートグル */
     private ActionBarDrawerToggle mDrawerToggle;
 
     /** ユーザデータ */
@@ -98,6 +109,9 @@ public class MapActivity extends ActionBarActivity {
 
     /** 処理中フラグ */
     private static boolean mProcessingFlg = false;
+
+    /** マーカーマップ */
+    private static Map<String, Marker> mMarkerMap = new HashMap<String, Marker>();
 
     /**
      * 生成された時に呼び出される。
@@ -150,6 +164,7 @@ public class MapActivity extends ActionBarActivity {
         // リソースを取得する。
         mResources = getResources();
 
+        // ドロワーリストアイテムを設定する。
         String[] drawerListItems = {
                 "退室",
                 "ログアウト"};
@@ -198,8 +213,8 @@ public class MapActivity extends ActionBarActivity {
                 supportInvalidateOptionsMenu();
             }
         };
-
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
         // アプリアイコンのクリック有効化
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -541,7 +556,39 @@ public class MapActivity extends ActionBarActivity {
         mGoogleMap.setMyLocationEnabled(true);
 
         // マーカークリックリスナーを設定する。
-//        mGoogleMap.setOnMarkerClickListener(new OnMarkerClickListenerImpl());
+        mGoogleMap.setOnMarkerClickListener(new OnMarkerClickListenerImpl());
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * マーカーを設定する。
+     *
+     * @param id ID
+     * @param latitude 緯度
+     * @param longitude 経度
+     */
+    private void setMarker(UserData userData, double latitude, double longitude) {
+        mLogger.d("IN latitude=[" + latitude + "] longitude=[" + longitude + "]");
+
+        // IDのマーカーを取得する。
+        Marker marker = mMarkerMap.get(userData.getName());
+        // 取得できた場合
+        if (null != marker) {
+            // マーカーを削除する。
+            mLogger.d("Marker exist.");
+            marker.remove();
+            mMarkerMap.remove(userData.getName());
+
+        } else {
+            mLogger.d("Marker not exist.");
+        }
+
+        //
+        MarkerOptions options = new MarkerOptions();
+        options.position(new LatLng(latitude, longitude));
+        options.title(userData.getName());
+        mMarkerMap.put(userData.getName(), mGoogleMap.addMarker(options));
 
         mLogger.d("OUT(OK)");
     }
@@ -626,9 +673,6 @@ public class MapActivity extends ActionBarActivity {
         }
     }
 
-
-
-
     /**************************************************************************/
     /**
      * 接続失敗リスナークラス
@@ -694,7 +738,7 @@ public class MapActivity extends ActionBarActivity {
                 mLogger.i("start.");
 
                 // 処理中ではない場合
-//                if (!mProcessingFlg) {
+                if (!mProcessingFlg) {
                     mLogger.i("not processing.");
 
                     // 処理中に設定する。
@@ -712,7 +756,7 @@ public class MapActivity extends ActionBarActivity {
                     bundle.putString(ParamKey.LONGITUDE, String.valueOf(location.getLongitude()));
 
                     // マーカーを設定する。
-//                    setMarker(mUserId, mNickname, location.getLatitude(), location.getLongitude());
+                    setMarker(mUserData, location.getLatitude(), location.getLongitude());
 
                     // ローダーを再スタートする。
                     getSupportLoaderManager().restartLoader(
@@ -720,9 +764,9 @@ public class MapActivity extends ActionBarActivity {
                             bundle,
                             new HttpPostLoaderCallbacks(
                                 MapActivity.this, new SendLocationOnReceiveResponseListener()));
-//                } else {
-//                    mLogger.i("processing.");
-//                }
+                } else {
+                    mLogger.i("processing.");
+                }
             } else {
                 mLogger.i("stop.");
             }
@@ -760,6 +804,37 @@ public class MapActivity extends ActionBarActivity {
             mProcessingFlg = false;
 
             mLogger.d("OUT(OK)");
+        }
+    }
+
+    /**************************************************************************/
+    /**
+     * マーカークリックリスナークラス
+     *
+     */
+    private class OnMarkerClickListenerImpl implements OnMarkerClickListener {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(OnMarkerClickListenerImpl.class);
+
+        /**
+         * マーカーをクリックした時に呼び出される。
+         *
+         * @param marker マーカー
+         */
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            mLogger.i("IN");
+
+            Toast.makeText(
+                    MapActivity.this,
+                    "Title    =[" + marker.getTitle()              + "]\n" +
+                    "Latitude =[" + marker.getPosition().latitude  + "]\n" +
+                    "Longitude=[" + marker.getPosition().longitude + "]",
+                    Toast.LENGTH_SHORT).show();
+
+            mLogger.i("OUT(OK)");
+            return false;
         }
     }
 }
