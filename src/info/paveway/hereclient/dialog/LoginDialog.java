@@ -25,7 +25,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
@@ -74,10 +73,10 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
         // ログインダイアログを設定する。
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("ようこそ");
-        builder.setPositiveButton("ログイン", null);
-        builder.setNeutralButton("ユーザ登録", null);
-        builder.setNegativeButton("キャンセル",  null);
+        builder.setTitle(R.string.dialog_login_title);
+        builder.setPositiveButton(R.string.dialog_login_button, null);
+        builder.setNeutralButton(R.string.dialog_regist_user_button, null);
+        builder.setNegativeButton(R.string.dialog_end_button, null);
         builder.setView(rootView);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
@@ -101,11 +100,11 @@ public class LoginDialog extends AbstractBaseDialogFragment {
                     }
                 });
 
-                // キャンセルボタン
+                // 終了ボタン
                 ((AlertDialog)dialog).getButton(Dialog.BUTTON_NEGATIVE).setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        doCancelButton();
+                        doEndButton();
                     }
                 });
             }
@@ -126,7 +125,7 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
         if (StringUtil.isNullOrEmpty(userName) ||
             StringUtil.isNullOrEmpty(password)) {
-            Toast.makeText(getActivity(), "すべて入力してください", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_input_all);
             return;
         }
 
@@ -156,7 +155,7 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
         if (StringUtil.isNullOrEmpty(userName) ||
             StringUtil.isNullOrEmpty(password)) {
-            Toast.makeText(getActivity(), "すべて入力してください", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_input_all);
             return;
         }
 
@@ -176,11 +175,12 @@ public class LoginDialog extends AbstractBaseDialogFragment {
     }
 
     /**
-     * キャンセルボタンの処理を行う。
+     * 終了ボタンの処理を行う。
      */
-    private void doCancelButton() {
+    private void doEndButton() {
         mLogger.d("IN");
 
+        // 終了する。
         dismiss();
         getActivity().finish();
 
@@ -232,11 +232,11 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
                 // エラーまたはログインできない場合
                 } else {
-                    Toast.makeText(getActivity(), "ユーザ名またはパスワードが違います", Toast.LENGTH_SHORT).show();
+                    toast(R.string.error_login);
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
             mLogger.d("OUT(OK)");
@@ -290,11 +290,11 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
                 // エラーの場合
                 } else {
-                    Toast.makeText(getActivity(), "登録できませんでした", Toast.LENGTH_SHORT).show();
+                    toast(R.string.error_regist_user);
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
             mLogger.d("OUT(OK)");

@@ -93,6 +93,9 @@ public class CommonConstants {
         /** ルーム更新日時 */
         public static final String ROOM_UPDATE_TIME = "roomUpdateTime";
 
+        /** 位置更新日時 */
+        public static final String LOCATION_UPDATE_TIME = "locationUpdateTime";
+
         /** 緯度 */
         public static final String LATITUDE = "latitude";
 
@@ -155,6 +158,12 @@ public class CommonConstants {
 
         /** ルームデータ */
         public static final String ROOM_DATA = "roomData";
+
+        /** タイトル */
+        public static final String TITLE = "title";
+
+        /** メッセージ */
+        public static final String MESSAGE = "message";
     }
 
     /**

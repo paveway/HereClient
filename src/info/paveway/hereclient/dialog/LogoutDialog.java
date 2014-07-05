@@ -5,6 +5,7 @@ import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.MainActivity;
+import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
@@ -22,7 +23,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
@@ -69,10 +69,10 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
 
         // ログアウトダイアログを設定する。
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("ログアウト");
-        builder.setMessage("ログアウトしますか");
-        builder.setPositiveButton("ログアウト", null);
-        builder.setNegativeButton("キャンセル",  null);
+        builder.setTitle(R.string.dialog_logout_title);
+        builder.setMessage(R.string.dialog_logout_message);
+        builder.setPositiveButton(R.string.dialog_logout_button, null);
+        builder.setNegativeButton(R.string.dialog_cancel_button,  null);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
         // ボタン押下でダイアログが閉じないようにリスナーを設定する。
@@ -164,11 +164,11 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
 
                 // エラーまたはログインできない場合
                 } else {
-                    Toast.makeText(getActivity(), "ログアウトできませんでした", Toast.LENGTH_SHORT).show();
+                    toast(R.string.error_logout);
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
             // 終了する。

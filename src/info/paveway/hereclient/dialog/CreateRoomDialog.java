@@ -19,11 +19,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
- * ルーム作成ダイアログクラス
+ * 新規ルーム作成ダイアログクラス
  *
  * @version 1.0 新規作成
  *
@@ -76,9 +75,9 @@ public class CreateRoomDialog extends AbstractBaseDialogFragment {
         mRoomKeyValue  = (EditText)rootView.findViewById(R.id.roomKeyValue);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("新規ルーム作成");
-        builder.setPositiveButton("作成", null);
-        builder.setNegativeButton("キャンセル",  null);
+        builder.setTitle(R.string.dialog_create_room_title);
+        builder.setPositiveButton(R.string.dialog_create_button, null);
+        builder.setNegativeButton(R.string.dialog_cancel_button,  null);
         builder.setView(rootView);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
@@ -119,7 +118,7 @@ public class CreateRoomDialog extends AbstractBaseDialogFragment {
 
         if (StringUtil.isNullOrEmpty(roomName) ||
             StringUtil.isNullOrEmpty(roomKey)) {
-            Toast.makeText(getActivity(), "すべて入力してください", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_input_all);
             return;
         }
 

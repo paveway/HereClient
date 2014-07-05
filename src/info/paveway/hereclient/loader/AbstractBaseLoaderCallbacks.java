@@ -1,7 +1,7 @@
 package info.paveway.hereclient.loader;
 
 import info.paveway.hereclient.dialog.LoginDialog;
-import info.paveway.hereclient.dialog.ProgressDialogEx;
+import info.paveway.hereclient.dialog.ProgressStatusDialog;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
 import android.content.Context;
@@ -40,7 +40,7 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     protected OnReceiveResponseListener mListener;
 
     /** 処理中ダイアログ */
-    private ProgressDialogEx mProgressDialog;
+    private ProgressStatusDialog mProgressDialog;
 
     /**
      * コンストラクタ
@@ -70,7 +70,7 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
         if (mContext instanceof ActionBarActivity) {
             // 処理中ダイアログを表示する。
             FragmentManager manager = ((ActionBarActivity)mContext).getSupportFragmentManager();
-            mProgressDialog = ProgressDialogEx.newInstance("処理中", "しばらくお待ちください");
+            mProgressDialog = ProgressStatusDialog.newInstance("処理中", "しばらくお待ちください");
             mProgressDialog.setCancelable(false);
             mProgressDialog.show(manager, LoginDialog.class.getSimpleName());
         }

@@ -4,6 +4,7 @@ import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
+import info.paveway.hereclient.R;
 import info.paveway.hereclient.RoomListActivity;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
@@ -63,10 +64,14 @@ public class DeleteRoomDialog extends AbstractBaseDialogFragment {
         mRoomData = (RoomData)getArguments().getSerializable(ExtraKey.ROOM_DATA);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("ルーム削除");
-        builder.setPositiveButton("削除", null);
-        builder.setNegativeButton("キャンセル",  null);
-        builder.setMessage("「" + mRoomData.getName() + "」ルームを削除しますか");
+        builder.setTitle(R.string.dialog_delete_room_title);
+        builder.setPositiveButton(R.string.dialog_delete_button, null);
+        builder.setNegativeButton(R.string.dialog_cancel_button,  null);
+        String message =
+                getResourceString(R.string.dialog_delete_room_message_prefix) +
+                mRoomData.getName() +
+                getResourceString(R.string.dialog_delete_room_message_suffix);
+        builder.setMessage(message);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
         // ボタン押下でダイアログが閉じないようにリスナーを設定する。

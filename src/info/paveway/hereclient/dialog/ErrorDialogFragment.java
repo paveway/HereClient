@@ -3,12 +3,11 @@ package info.paveway.hereclient.dialog;
 import info.paveway.log.Logger;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 
 /**
  * Dialogを外からセットできるエラー表示用DialogFragment
  */
-public class ErrorDialogFragment extends DialogFragment {
+public class ErrorDialogFragment extends AbstractBaseDialogFragment {
 
     /** ロガー */
     private Logger mLogger = new Logger(ErrorDialogFragment.class);

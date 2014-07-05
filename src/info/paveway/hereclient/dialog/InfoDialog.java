@@ -41,13 +41,13 @@ public class InfoDialog extends AbstractBaseDialogFragment {
         mLogger.d("IN");
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.info_dialog_title);
+        builder.setTitle(R.string.dialog_info_title);
         String message =
-                getResourceString(R.string.info_dialog_message_prefix) +
+                getResourceString(R.string.dialog_info_message_prefix) +
                 getVersionName() +
-                getResourceString(R.string.info_dialog_message_suffix);
+                getResourceString(R.string.dialog_info_message_suffix);
         builder.setMessage(message);
-        builder.setPositiveButton(R.string.info_dialog_positive_button, null);
+        builder.setPositiveButton(R.string.dialog_close_button, null);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
 

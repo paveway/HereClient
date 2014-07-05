@@ -28,7 +28,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
@@ -87,9 +86,9 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
         mRoomKeyValue = (EditText)rootView.findViewById(R.id.roomKeyValue);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("入室");
-        builder.setPositiveButton("入室", null);
-        builder.setNegativeButton("キャンセル",  null);
+        builder.setTitle(R.string.dialog_enter_room_title);
+        builder.setPositiveButton(R.string.dialog_enter_room_button, null);
+        builder.setNegativeButton(R.string.dialog_cancel_button,  null);
         builder.setView(rootView);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
@@ -126,7 +125,7 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
         String roomKey = mRoomKeyValue.getText().toString();
 
         if (StringUtil.isNullOrEmpty(roomKey)) {
-            Toast.makeText(getActivity(), "ルームキーが未入力です", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_input_room_key);
             return;
         }
 
@@ -203,11 +202,11 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
 
             // エラーの場合
             } else {
-                Toast.makeText(getActivity(), "入室できませんでした", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_enter_room);
             }
         } catch (JSONException e) {
             mLogger.e(e);
-            Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_response);
         }
 
             mLogger.d("OUT(OK)");

@@ -4,6 +4,7 @@ import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
+import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
@@ -19,7 +20,6 @@ import android.content.DialogInterface.OnShowListener;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
@@ -62,10 +62,10 @@ public class DeleteUserDialog extends AbstractBaseDialogFragment {
         mUserData = (UserData)getArguments().getSerializable(ExtraKey.USER_DATA);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("ユーザ削除");
-        builder.setPositiveButton("削除", null);
-        builder.setNegativeButton("キャンセル",  null);
-        builder.setMessage("ユーザを削除しますか");
+        builder.setTitle(R.string.dialog_delete_user_title);
+        builder.setPositiveButton(R.string.dialog_delete_button, null);
+        builder.setNegativeButton(R.string.dialog_cancel_button,  null);
+        builder.setMessage(R.string.dialog_delete_user_message);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
         // ボタン押下でダイアログが閉じないようにリスナーを設定する。
@@ -121,15 +121,15 @@ public class DeleteUserDialog extends AbstractBaseDialogFragment {
     private void doCancelButton() {
         mLogger.d("IN");
 
+        // ダイアログを終了する。
         dismiss();
-//        getActivity().finish();
 
         mLogger.d("OUT(OK)");
     }
 
     /**************************************************************************/
     /**
-     * ログインレスポンス受信リスナークラス
+     * ユーザ削除レスポンス受信リスナークラス
      *
      */
     private class DeleteUserOnReceiveResponseListener implements OnReceiveResponseListener {
@@ -159,11 +159,11 @@ public class DeleteUserDialog extends AbstractBaseDialogFragment {
 
                 // エラーまたはログインできない場合
                 } else {
-                    Toast.makeText(getActivity(), "ユーザを削除できませんでした", Toast.LENGTH_SHORT).show();
+                    toast(R.string.error_delete_user);
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
             mLogger.d("OUT(OK)");

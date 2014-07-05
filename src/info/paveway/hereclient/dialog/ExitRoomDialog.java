@@ -4,6 +4,7 @@ import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
+import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
@@ -21,7 +22,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
@@ -73,10 +73,10 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
 
         // 退室ダイアログを設定する。
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("退室");
-        builder.setMessage("退室しますか");
-        builder.setPositiveButton("退室", null);
-        builder.setNegativeButton("キャンセル",  null);
+        builder.setTitle(R.string.dialog_exit_room_title);
+        builder.setMessage(R.string.dialog_exit_room_message);
+        builder.setPositiveButton(R.string.dialog_exit_room_button, null);
+        builder.setNegativeButton(R.string.dialog_cancel_button,  null);
         AlertDialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(false);
         // ボタン押下でダイアログが閉じないようにリスナーを設定する。
@@ -170,11 +170,11 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
 
                 // エラーまたは退室できない場合
                 } else {
-                    Toast.makeText(getActivity(), "退室できませんでした", Toast.LENGTH_SHORT).show();
+                    toast(R.string.error_exit_room);
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(getActivity(), "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
             // 終了する。

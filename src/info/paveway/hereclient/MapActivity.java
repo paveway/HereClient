@@ -5,6 +5,7 @@ import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.RequestCode;
 import info.paveway.hereclient.CommonConstants.Url;
+import info.paveway.hereclient.data.LocationData;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.dialog.ErrorDialogFragment;
@@ -17,6 +18,7 @@ import info.paveway.log.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,13 +26,11 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,7 +38,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -63,13 +62,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
  * @version 1.0 新規作成
  *
  */
-public class MapActivity extends ActionBarActivity {
+public class MapActivity extends AbstractBaseActivity {
 
     /** ロガー */
     private Logger mLogger = new Logger(MapActivity.class);
-
-    /** リソース */
-    protected Resources mResources;
 
     /** ドロワーリスト */
     private ListView mDrawerList;
@@ -133,7 +129,7 @@ public class MapActivity extends ActionBarActivity {
         // インテントが取得できない場合
         if (null == intent) {
             // 終了する。
-            Toast.makeText(this, "不正な画面遷移です", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_illegal_transition);
             finish();
             mLogger.d("OUT(NG)");
             return;
@@ -144,7 +140,7 @@ public class MapActivity extends ActionBarActivity {
         // ユーザデータが取得できない場合
         if (null == mUserData) {
             // 終了する。
-            Toast.makeText(this, "不正な画面遷移です", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_illegal_transition);
             finish();
             mLogger.d("OUT(NG)");
             return;
@@ -155,7 +151,7 @@ public class MapActivity extends ActionBarActivity {
         // ルームデータが取得できない場合
         if (null == mRoomData) {
             // 終了する。
-            Toast.makeText(this, "不正な画面遷移です", Toast.LENGTH_SHORT).show();
+            toast(R.string.error_illegal_transition);
             finish();
             mLogger.d("OUT(NG)");
             return;
@@ -257,6 +253,7 @@ public class MapActivity extends ActionBarActivity {
             }
         } catch (Exception e) {
             mLogger.e(e);
+            toast(R.string.error_init_map);
             finish();
             return;
         }
@@ -482,16 +479,6 @@ public class MapActivity extends ActionBarActivity {
     }
 
     /**
-     * リソース文字列を返却する。
-     *
-     * @param id 文字列のリソースID
-     * @return リソース文字列
-     */
-    protected String getResourceString(int id) {
-        return mResources.getString(id);
-    }
-
-    /**
      * ロケーション更新を開始する。
      */
     private void startLocationUpdates() {
@@ -568,17 +555,19 @@ public class MapActivity extends ActionBarActivity {
      * @param latitude 緯度
      * @param longitude 経度
      */
-    private void setMarker(UserData userData, double latitude, double longitude) {
-        mLogger.d("IN latitude=[" + latitude + "] longitude=[" + longitude + "]");
+    private void setMarker(LocationData locationData) {
+        mLogger.d("IN");
+
+        String name = locationData.getName();
 
         // IDのマーカーを取得する。
-        Marker marker = mMarkerMap.get(userData.getName());
+        Marker marker = mMarkerMap.get(name);
         // 取得できた場合
         if (null != marker) {
             // マーカーを削除する。
             mLogger.d("Marker exist.");
             marker.remove();
-            mMarkerMap.remove(userData.getName());
+            mMarkerMap.remove(name);
 
         } else {
             mLogger.d("Marker not exist.");
@@ -586,9 +575,9 @@ public class MapActivity extends ActionBarActivity {
 
         //
         MarkerOptions options = new MarkerOptions();
-        options.position(new LatLng(latitude, longitude));
-        options.title(userData.getName());
-        mMarkerMap.put(userData.getName(), mGoogleMap.addMarker(options));
+        options.position(new LatLng(locationData.getLatitude(), locationData.getLongitude()));
+        options.title(name);
+        mMarkerMap.put(name, mGoogleMap.addMarker(options));
 
         mLogger.d("OUT(OK)");
     }
@@ -608,6 +597,7 @@ public class MapActivity extends ActionBarActivity {
             ErrorDialogFragment errorFragment = new ErrorDialogFragment();
             errorFragment.setDialog(errorDialog);
             errorFragment.show(getSupportFragmentManager(), ErrorDialogFragment.TAG);
+
         }
     }
 
@@ -744,6 +734,9 @@ public class MapActivity extends ActionBarActivity {
                     // 処理中に設定する。
                     mProcessingFlg = true;
 
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+
                     // ローダーを初期化する。
                     Bundle bundle = new Bundle();
 
@@ -752,11 +745,17 @@ public class MapActivity extends ActionBarActivity {
                     bundle.putString(ParamKey.ROOM_KEY,  mRoomData.getPassword());
                     bundle.putString(ParamKey.USER_ID,   String.valueOf(mUserData.getId()));
                     bundle.putString(ParamKey.USER_NAME, mUserData.getName());
-                    bundle.putString(ParamKey.LATITUDE,  String.valueOf(location.getLatitude()));
-                    bundle.putString(ParamKey.LONGITUDE, String.valueOf(location.getLongitude()));
+                    bundle.putString(ParamKey.LATITUDE,  String.valueOf(latitude));
+                    bundle.putString(ParamKey.LONGITUDE, String.valueOf(longitude));
+
+                    LocationData locationData = new LocationData();
+                    locationData.setId(mUserData.getId());
+                    locationData.setName(mUserData.getName());
+                    locationData.setLatitude(latitude);
+                    locationData.setLongitude(longitude);
 
                     // マーカーを設定する。
-                    setMarker(mUserData, location.getLatitude(), location.getLongitude());
+                    setMarker(locationData);
 
                     // ローダーを再スタートする。
                     getSupportLoaderManager().restartLoader(
@@ -797,7 +796,38 @@ public class MapActivity extends ActionBarActivity {
 
             try {
                 // JSON文字列を生成する。
-                JSONObject jsonObject = new JSONObject(response);
+                JSONObject json = new JSONObject(response);
+
+                // ステータスを取得する。
+                boolean status = json.getBoolean(ParamKey.STATUS);
+
+                // 削除成功の場合
+                if (status) {
+                    // 位置データ数を取得する。
+                    int locationDataNum = json.getInt(ParamKey.LOCATION_DATA_NUM);
+
+                    // 位置データがある場合
+                    if (0 < locationDataNum) {
+                        JSONArray locationDatas = json.getJSONArray(ParamKey.LOCATION_DATAS);
+
+                        // 位置データ数分繰り返す。
+                        for (int i = 0; i < locationDataNum; i++) {
+                            JSONObject locationDataObj = locationDatas.getJSONObject(i);
+
+                            // 位置データを生成する。
+                            LocationData locationData = new LocationData();
+                            locationData.setId(locationDataObj.getLong(ParamKey.USER_ID));
+                            locationData.setName(locationDataObj.getString(ParamKey.USER_NAME));
+                            locationData.setLatitude(locationDataObj.getDouble(ParamKey.LATITUDE));
+                            locationData.setLongitude(locationDataObj.getDouble(ParamKey.LONGITUDE));
+                            locationData.setUpdateTime(locationDataObj.getLong(ParamKey.LOCATION_UPDATE_TIME));
+
+                            // マーカーを設定する。
+                            setMarker(locationData);
+                        }
+                    }
+
+                }
             } catch (JSONException e) {
                 mLogger.e(e);
             }
@@ -826,12 +856,12 @@ public class MapActivity extends ActionBarActivity {
         public boolean onMarkerClick(Marker marker) {
             mLogger.i("IN");
 
-            Toast.makeText(
-                    MapActivity.this,
+            // 位置情報を表示する。
+            String text =
                     "Title    =[" + marker.getTitle()              + "]\n" +
                     "Latitude =[" + marker.getPosition().latitude  + "]\n" +
-                    "Longitude=[" + marker.getPosition().longitude + "]",
-                    Toast.LENGTH_SHORT).show();
+                    "Longitude=[" + marker.getPosition().longitude + "]";
+            toast(text);
 
             mLogger.i("OUT(OK)");
             return false;

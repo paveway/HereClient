@@ -12,8 +12,8 @@ import info.paveway.hereclient.dialog.DeleteUserDialog;
 import info.paveway.hereclient.dialog.EnterRoomDialog;
 import info.paveway.hereclient.dialog.InfoDialog;
 import info.paveway.hereclient.dialog.LogoutDialog;
-import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.hereclient.loader.HttpGetLoaderCallbacks;
+import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 
 import java.util.ArrayList;
@@ -25,13 +25,11 @@ import org.json.JSONObject;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,7 +38,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 /**
  * ここにいるクライアント
@@ -49,7 +46,7 @@ import android.widget.Toast;
  * @version 1.0 新規作成
  *
  */
-public class RoomListActivity extends ActionBarActivity {
+public class RoomListActivity extends AbstractBaseActivity {
 
     /** ロガー */
     private Logger mLogger = new Logger(RoomListActivity.class);
@@ -57,11 +54,13 @@ public class RoomListActivity extends ActionBarActivity {
     /** ハンドラー */
     private Handler mHandler = new Handler();
 
-    /** リソース */
-    protected Resources mResources;
-
+    /** ドロワーリスト */
     private ListView mDrawerList;
+
+    /** ドロワーレイアウト */
     private DrawerLayout mDrawerLayout;
+
+    /** ドロワートグル */
     private ActionBarDrawerToggle mDrawerToggle;
 
     /** ユーザデータ */
@@ -117,14 +116,11 @@ public class RoomListActivity extends ActionBarActivity {
             return;
         }
 
-        // リソースを取得する。
-        mResources = getResources();
-
         String[] drawerListItems = {
-                "新規ルーム",
-                "更新",
-                "ログアウト",
-                "ユーザ削除",
+                getResourceString(R.string.drawer_item_create_room),
+                getResourceString(R.string.drawer_item_update_room_list),
+                getResourceString(R.string.drawer_item_logout),
+                getResourceString(R.string.drawer_item_delete_user),
                 getResourceString(R.string.menu_info)};
         mDrawerList = (ListView)findViewById(R.id.drawerList);
         mDrawerList.setAdapter(
@@ -143,7 +139,7 @@ public class RoomListActivity extends ActionBarActivity {
                     break;
                 }
 
-                // 更新の場合
+                // ルーム一覧更新の場合
                 case 1: {
                     // ルームデータリストを取得する。
                     getRoomDataList();
@@ -470,12 +466,12 @@ public class RoomListActivity extends ActionBarActivity {
                             JSONObject roomDataObj = roomDatas.getJSONObject(i);
                             RoomData roomData = new RoomData();
 
-                            roomData.setId(roomDataObj.getLong(ParamKey.ROOM_ID));
-                            roomData.setName(roomDataObj.getString(ParamKey.ROOM_NAME));
-                            roomData.setPassword(roomDataObj.getString(ParamKey.ROOM_KEY));
-                            roomData.setOwnerId(roomDataObj.getLong(ParamKey.OWNER_ID));
-                            roomData.setOwnerName(roomDataObj.getString(ParamKey.OWNER_NAME));
-                            roomData.setUpdateTime(roomDataObj.getLong(ParamKey.ROOM_UPDATE_TIME));
+                            roomData.setId(        roomDataObj.getLong(  ParamKey.ROOM_ID));
+                            roomData.setName(      roomDataObj.getString(ParamKey.ROOM_NAME));
+                            roomData.setPassword(  roomDataObj.getString(ParamKey.ROOM_KEY));
+                            roomData.setOwnerId(   roomDataObj.getLong(  ParamKey.OWNER_ID));
+                            roomData.setOwnerName( roomDataObj.getString(ParamKey.OWNER_NAME));
+                            roomData.setUpdateTime(roomDataObj.getLong(  ParamKey.ROOM_UPDATE_TIME));
 
                             mRoomDataList.add(roomData);
                         }
@@ -494,11 +490,11 @@ public class RoomListActivity extends ActionBarActivity {
 
                 // エラーの場合
                 } else {
-                    Toast.makeText(RoomListActivity.this, "ルーム名を取得できませんでした", Toast.LENGTH_SHORT).show();
+                    toast(R.string.error_room_list);
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(RoomListActivity.this, "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
 
@@ -557,12 +553,12 @@ public class RoomListActivity extends ActionBarActivity {
                             JSONObject roomDataObj = roomDatas.getJSONObject(i);
                             RoomData roomData = new RoomData();
 
-                            roomData.setId(roomDataObj.getLong(ParamKey.ROOM_ID));
-                            roomData.setName(roomDataObj.getString(ParamKey.ROOM_NAME));
-                            roomData.setPassword(roomDataObj.getString(ParamKey.ROOM_KEY));
-                            roomData.setOwnerId(roomDataObj.getLong(ParamKey.OWNER_ID));
-                            roomData.setOwnerName(roomDataObj.getString(ParamKey.OWNER_NAME));
-                            roomData.setUpdateTime(roomDataObj.getLong(ParamKey.ROOM_UPDATE_TIME));
+                            roomData.setId(        roomDataObj.getLong(  ParamKey.ROOM_ID));
+                            roomData.setName(      roomDataObj.getString(ParamKey.ROOM_NAME));
+                            roomData.setPassword(  roomDataObj.getString(ParamKey.ROOM_KEY));
+                            roomData.setOwnerId(   roomDataObj.getLong(  ParamKey.OWNER_ID));
+                            roomData.setOwnerName( roomDataObj.getString(ParamKey.OWNER_NAME));
+                            roomData.setUpdateTime(roomDataObj.getLong(  ParamKey.ROOM_UPDATE_TIME));
 
                             mRoomDataList.add(roomData);
                         }
@@ -581,7 +577,7 @@ public class RoomListActivity extends ActionBarActivity {
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(RoomListActivity.this, "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
             mLogger.d("OUT(OK)");
@@ -638,12 +634,12 @@ public class RoomListActivity extends ActionBarActivity {
                             JSONObject roomDataObj = roomDatas.getJSONObject(i);
                             RoomData roomData = new RoomData();
 
-                            roomData.setId(roomDataObj.getLong(ParamKey.ROOM_ID));
-                            roomData.setName(roomDataObj.getString(ParamKey.ROOM_NAME));
-                            roomData.setPassword(roomDataObj.getString(ParamKey.ROOM_KEY));
-                            roomData.setOwnerId(roomDataObj.getLong(ParamKey.OWNER_ID));
-                            roomData.setOwnerName(roomDataObj.getString(ParamKey.OWNER_NAME));
-                            roomData.setUpdateTime(roomDataObj.getLong(ParamKey.ROOM_UPDATE_TIME));
+                            roomData.setId(        roomDataObj.getLong(  ParamKey.ROOM_ID));
+                            roomData.setName(      roomDataObj.getString(ParamKey.ROOM_NAME));
+                            roomData.setPassword(  roomDataObj.getString(ParamKey.ROOM_KEY));
+                            roomData.setOwnerId(   roomDataObj.getLong(  ParamKey.OWNER_ID));
+                            roomData.setOwnerName( roomDataObj.getString(ParamKey.OWNER_NAME));
+                            roomData.setUpdateTime(roomDataObj.getLong(  ParamKey.ROOM_UPDATE_TIME));
 
                             mRoomDataList.add(roomData);
                         }
@@ -662,11 +658,11 @@ public class RoomListActivity extends ActionBarActivity {
 
                 // エラーまたはログインできない場合
                 } else {
-                    Toast.makeText(RoomListActivity.this, "ユーザを削除できませんでした", Toast.LENGTH_SHORT).show();
+                    toast(R.string.error_delete_room);
                 }
             } catch (JSONException e) {
                 mLogger.e(e);
-                Toast.makeText(RoomListActivity.this, "エラーが発生しました", Toast.LENGTH_SHORT).show();
+                toast(R.string.error_response);
             }
 
             mLogger.d("OUT(OK)");
