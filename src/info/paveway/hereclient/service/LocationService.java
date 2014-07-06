@@ -1,0 +1,185 @@
+package info.paveway.hereclient.service;
+
+import info.paveway.log.Logger;
+import android.app.Service;
+import android.content.Intent;
+import android.location.Location;
+import android.os.Bundle;
+import android.os.IBinder;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
+import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+
+public class LocationService extends Service {
+
+    private Logger mLogger = new Logger(LocationService.class);
+
+    /** ロケーションクライアント */
+    private LocationClient mLocationClient;
+
+    /** ロケーションリクエスト */
+    private LocationRequest mLocationRequest;
+
+    /** ロケーションリスナー */
+    private LocationListener mLocationListener;
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        // バインドは拒否する。
+        return null;
+    }
+
+    @Override
+    public void onCreate() {
+        // ロケーションリクエストを生成する。
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(30 * 1000);
+        mLocationRequest.setFastestInterval(30 * 1000);
+
+        // ロケーションリスナーを生成する。
+        mLocationListener = new UserLocationListener();
+
+        // ロケーションクライアントを生成する。
+        mLocationClient =
+                new LocationClient(
+                        LocationService.this,
+                        new LocationConnectionCallbacks(),
+                        new LocationOnConnectionFailedListenerImpl());
+        mLocationClient.connect();
+    }
+
+    /**
+     * ロケーション更新を開始する。
+     */
+    private void startLocationUpdates() {
+        mLogger.d("IN");
+
+        // 接続済みの場合
+        if (mLocationClient.isConnected()) {
+            // ロケーション更新を要求する。
+            mLocationClient.requestLocationUpdates(mLocationRequest, mLocationListener);
+        }
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * ロケーション更新を停止する。
+     */
+    private void stopLocationUpdates() {
+        mLogger.d("IN");
+
+        // ロケーション更新を解除する。
+        mLocationClient.removeLocationUpdates(mLocationListener);
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**************************************************************************/
+    /**
+     * ロケーション接続コールバッククラス
+     *
+     */
+    private class LocationConnectionCallbacks implements ConnectionCallbacks {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(LocationConnectionCallbacks.class);
+
+        /**
+         * 接続した時に呼び出される。
+         *
+         * @param bundle バンドル
+         */
+        @Override
+        public void onConnected(Bundle bundle) {
+            mLogger.i("IN");
+
+            // ロケーション更新を開始する。
+            startLocationUpdates();
+
+            mLogger.i("OUT(OK)");
+        }
+
+        /**
+         * 切断した時に呼び出される。
+         */
+        @Override
+        public void onDisconnected() {
+            mLogger.i("IN");
+
+            // ロケーション更新を停止する。
+            stopLocationUpdates();
+
+            mLogger.i("OUT(OK)");
+        }
+    }
+
+    /**************************************************************************/
+    /**
+     * ロケーション接続失敗リスナークラス
+     *
+     */
+    private class LocationOnConnectionFailedListenerImpl implements OnConnectionFailedListener {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(LocationOnConnectionFailedListenerImpl.class);
+
+        /**
+         * 接続が失敗した時に呼び出される。
+         *
+         * @param connectionResult 接続結果
+         */
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+            mLogger.i("IN");
+
+//            // 解決策がある場合
+//            if (connectionResult.hasResolution()) {
+//                try {
+//                    // エラーを解決してくれるインテントを投げる。
+//                    connectionResult.startResolutionForResult(
+//                        LocationService.this, RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST);
+//                } catch (IntentSender.SendIntentException e) {
+//                    mLogger.e(e);
+//                }
+//
+//            // 解決策がない場合
+//            } else {
+//                // 解決策がない場合はエラーダイアログを出します
+//                showErrorDialog(
+//                    connectionResult.getErrorCode(),
+//                    RequestCode.CONNECTION_FAILURE_RESOLUTION_REQUEST);
+//            }
+
+            mLogger.i("OUT(OK)");
+        }
+    }
+
+    /**************************************************************************/
+    /**
+     * ユーザロケーションリスナークラス
+     *
+     */
+    private class UserLocationListener implements LocationListener {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(UserLocationListener.class);
+
+        /**
+         * ロケーションが変更された時に呼び出される。
+         *
+         * @param location ロケーションオブジェクト
+         */
+        @Override
+        public void onLocationChanged(Location location) {
+            mLogger.i("IN");
+
+            mLogger.i("OUT(OK)");
+        }
+    }
+}

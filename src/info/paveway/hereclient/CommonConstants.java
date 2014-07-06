@@ -47,6 +47,12 @@ public class CommonConstants {
         /** 位置情報送信URL */
         public static final String SEND_LOCATION = BASE + "sendLocation";
 
+        /** メモ編集URL */
+        public static final String EDIT_MEMO = BASE + "editMemo";
+
+        /** メモ削除URL */
+        public static final String DELETE_MEMO = BASE + "deleteMemo";
+
     }
 
     /**
@@ -102,6 +108,18 @@ public class CommonConstants {
         /** 軽度 */
         public static final String LONGITUDE = "longitude";
 
+        /** メモタイトル */
+        public static final String MEMO_TITLE = "memoTitle";
+
+        /** メモ内容 */
+        public static final String MEMO_CONTENT = "memoContent";
+
+        /** メモ公開範囲 */
+        public static final String MEMO_RANGE = "memoRange";
+
+        /** メモ更新日時 */
+        public static final String MEMO_UPDATE_TIME = "memoUpdateTime";
+
         /** ルームデータ配列 */
         public static final String ROOM_DATAS = "roomDatas";
 
@@ -113,6 +131,12 @@ public class CommonConstants {
 
         /** 位置データ数 */
         public static final String LOCATION_DATA_NUM = "locationDataNum";
+
+        /** メモデータ配列 */
+        public static final String MEMO_DATAS = "memoDatas";
+
+        /** メモデータ数 */
+        public static final String MEMO_DATA_NUM = "memoDataNum";
     }
 
     /**
@@ -146,6 +170,12 @@ public class CommonConstants {
 
         /** 位置情報送信ID */
         public static final int SEND_LOCATION = 9;
+
+        /** メモ編集ID */
+        public static final int EDIT_MEMO = 10;
+
+        /** メモ削除 */
+        public static final int DELETE_MEMO = 11;
     }
 
     /**
@@ -159,11 +189,23 @@ public class CommonConstants {
         /** ルームデータ */
         public static final String ROOM_DATA = "roomData";
 
-        /** タイトル */
-        public static final String TITLE = "title";
+        /** 進捗ダイアログタイトル */
+        public static final String PROGRESS_TITLE = "progressTitle";
 
-        /** メッセージ */
-        public static final String MESSAGE = "message";
+        /** 進捗ダイアログメッセージ */
+        public static final String PROGRESS_MESSAGE = "progressMessage";
+
+        /** ユーザ緯度 */
+        public static final String USER_LATITUDE = "userLatutide";
+
+        /** ユーザ経度 */
+        public static final String USER_LONGITUDE = "userLongitude";
+
+        /** メモ緯度 */
+        public static final String MEMO_LATITUDE = "memoLatitude";
+
+        /** メモ経度 */
+        public static final String MEMO_LONGITUDE = "memoLongitude";
     }
 
     /**
@@ -182,9 +224,6 @@ public class CommonConstants {
     public class RequestCode {
         /** 設定画面 */
         public static final int SETTINGS = 1;
-
-        /** マップ画面 */
-        public static final int MAP = 2;
 
         /** 接続エラー解決要求 */
         public static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;

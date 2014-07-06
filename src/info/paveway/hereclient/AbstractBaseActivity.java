@@ -8,7 +8,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.widget.Toast;
 
 /**
- * 最低価格記録アプリ
+ * ここにいるクライアント
  * 抽象ベース画面クラス
  *
  * @version 1.0 新規作成

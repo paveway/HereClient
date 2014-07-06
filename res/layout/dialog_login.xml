@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="8dp"
-            android:text="ユーザー名" />
+            android:text="@string/dialog_user_name_label" />
 
         <EditText
             android:id="@+id/userNameValue"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="8dp"
-            android:text="パスワード" />
+            android:text="@string/dialog_user_password_label" />
 
         <EditText
             android:id="@+id/passwordValue"

@@ -11,7 +11,7 @@
     <string name="menu_delete_user">ユーザ削除</string>
     <string name="menu_info">バージョン情報</string>
 
-    <!-- ドロワー -->
+    <!-- ドロワーアイテム -->
     <string name="drawer_item_create_room">新規ルーム作成</string>
     <string name="drawer_item_update_room_list">ルーム一覧更新</string>
     <string name="drawer_item_logout">ログアウト</string>
@@ -30,6 +30,18 @@
     <string name="dialog_delete_button">削除</string>
     <string name="dialog_cancel_button">キャンセル</string>
     <string name="dialog_close_button">閉じる</string>
+
+    <!-- ダイアログラベル -->
+    <string name="dialog_room_name_label">ルーム名</string>
+    <string name="dialog_room_key_label">ルームキー</string>
+    <string name="dialog_user_name_label">ユーザ名</string>
+    <string name="dialog_user_password_label">パスワード</string>
+    <string name="dialog_memo_title_label">タイトル</string>
+    <string name="dialog_memo_content_label">メモ</string>
+    <string name="dialog_memo_range_title_label">公開方法</string>
+    <string name="dialog_memo_range_radio_button_label1">自分のみ</string>
+    <string name="dialog_memo_range_radio_button_label2">ルームメンバーのみ</string>
+    <string name="dialog_memo_range_radio_button_label3">全員</string>
 
     <!-- 新規ルーム作成ダイアログ -->
     <string name="dialog_create_room_title">新規ルーム作成</string>
@@ -57,6 +69,9 @@
     <string name="dialog_logout_title">ダイアログ</string>
     <string name="dialog_logout_message">ログアウトしますか</string>
 
+    <!-- メモ編集ダイアログ -->
+    <string name="dialog_memo_title">メモ編集</string>
+
     <!-- バージョン情報ダイアログ -->
     <string name="dialog_info_title">バージョン情報</string>
     <string name="dialog_info_message_prefix">ここにいる\nVer.</string>
@@ -67,7 +82,8 @@
     <string name="error_input_all">すべて入力してください</string>
     <string name="error_input_room_key">ルームキーを入力してください</string>
     <string name="error_login">ユーザ名またはパスワードが違います</string>
-    <string name="error_regist_user">ユーザ登録できませんでした</string>
+    <string name="error_memo_title">タイトルを入力してください</string>
+    <string name="error_regist_user">ユーザを登録できませんでした</string>
     <string name="error_logout">ログアウトできませんでした</string>
     <string name="error_room_list">ルーム名を取得できませんでした</string>
     <string name="error_delete_user">ユーザを削除できませんでした</string>
@@ -76,5 +92,7 @@
     <string name="error_delete_room">ルームを削除できませんでした</string>
     <string name="error_illegal_transition">不正な画面遷移です</string>
     <string name="error_init_map">マップの初期化ができませんでした</string>
+    <string name="error_edit_memo">メモを登録できませんでした</string>
+    <string name="error_delete_memo">メモを削除できませんでした</string>
 
 </resources>

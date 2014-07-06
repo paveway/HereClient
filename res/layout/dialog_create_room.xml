@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="8dp"
-            android:text="ルーム名" />
+            android:text="@string/dialog_room_name_label" />
 
         <EditText
             android:id="@+id/roomNameValue"
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="8dp"
-            android:text="ルームキー" />
+            android:text="@string/dialog_room_key_label" />
 
         <EditText
             android:id="@+id/roomKeyValue"

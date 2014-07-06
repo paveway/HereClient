@@ -16,8 +16,8 @@ public class ProgressStatusDialog extends DialogFragment {
 
         // ダイアログにパラメータを渡す
         Bundle arguments = new Bundle();
-        arguments.putString(ExtraKey.TITLE, title);
-        arguments.putString(ExtraKey.MESSAGE, message);
+        arguments.putString(ExtraKey.PROGRESS_TITLE, title);
+        arguments.putString(ExtraKey.PROGRESS_MESSAGE, message);
         instance.setArguments(arguments);
 
         return instance;
@@ -31,8 +31,8 @@ public class ProgressStatusDialog extends DialogFragment {
         }
 
         // パラメータを取得
-        String title = getArguments().getString(ExtraKey.TITLE);
-        String message = getArguments().getString(ExtraKey.MESSAGE);
+        String title = getArguments().getString(ExtraKey.PROGRESS_TITLE);
+        String message = getArguments().getString(ExtraKey.PROGRESS_MESSAGE);
 
         mProgressDialog = new ProgressDialog(getActivity());
         mProgressDialog.setTitle(title);

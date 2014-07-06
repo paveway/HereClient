@@ -9,6 +9,7 @@ import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
+import info.paveway.hereclient.service.LocationService;
 import info.paveway.log.Logger;
 
 import org.json.JSONException;
@@ -18,6 +19,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -167,6 +169,8 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
 
                 // 退室成功の場合
                 if (status) {
+                    // 位置サービスを停止する。
+                    stopLocationService();
 
                 // エラーまたは退室できない場合
                 } else {
@@ -188,5 +192,18 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
 
             mLogger.d("OUT(OK)");
         }
+    }
+
+    /**
+     * 位置サービスを停止する。
+     */
+    private void stopLocationService() {
+        mLogger.d("IN");
+
+        // 監視サービスを停止する。
+        boolean result = getActivity().stopService(new Intent(getActivity(), LocationService.class));
+        mLogger.d("result=[" + result + "]");
+
+        mLogger.d("OUT(OK)");
     }
 }
