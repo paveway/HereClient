@@ -234,4 +234,10 @@ public class CommonConstants {
 
         public static final String ACTION_LOCATION_FAILED = "info.paveway.hereclient.ACTION_LOCATION_FAILED";
     }
+
+    public class MemoRangeValue {
+        public static final int SELF = 1;
+        public static final int MEMBER = 2;
+        public static final int ALL = 3;
+    }
 }

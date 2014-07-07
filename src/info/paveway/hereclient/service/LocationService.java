@@ -3,7 +3,6 @@ package info.paveway.hereclient.service;
 import info.paveway.hereclient.CommonConstants.Action;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.log.Logger;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;

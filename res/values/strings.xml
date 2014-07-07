@@ -64,6 +64,7 @@
 
     <!-- ログインダイアログ -->
     <string name="dialog_login_title">ようこそ</string>
+    <string name="dialog_logined_check_box">次回ログイン済みとする</string>
 
     <!-- ログアウトダイアログ -->
     <string name="dialog_logout_title">ダイアログ</string>

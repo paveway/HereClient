@@ -2,6 +2,7 @@ package info.paveway.hereclient.dialog;
 
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
+import info.paveway.hereclient.CommonConstants.MemoRangeValue;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
@@ -149,6 +150,21 @@ public class EditMemoDialog extends AbstractBaseDialogFragment {
             return;
         }
 
+        int memoRangeValue = 0;
+        switch (rangeRadioButtonId) {
+        case R.id.rangeRadioButton1:
+            memoRangeValue = MemoRangeValue.SELF;
+            break;
+
+        case R.id.rangeRadioButton2:
+            memoRangeValue = MemoRangeValue.MEMBER;
+            break;
+
+        case R.id.rangeRadioButton3:
+            memoRangeValue = MemoRangeValue.ALL;
+            break;
+        }
+
         // メモ編集処理を行う。
         // パラメータを生成する。
         Bundle params = new Bundle();
@@ -159,6 +175,7 @@ public class EditMemoDialog extends AbstractBaseDialogFragment {
         params.putString(ParamKey.USER_NAME,                   mUserData.getName());
         params.putString(ParamKey.MEMO_TITLE,                  memoTitle);
         params.putString(ParamKey.MEMO_CONTENT,                memoContent);
+        params.putString(ParamKey.MEMO_RANGE,   String.valueOf(memoRangeValue));
         params.putString(ParamKey.LATITUDE,     String.valueOf(mMemoLatitude));
         params.putString(ParamKey.LONGITUDE,    String.valueOf(mMemoLongitude));
 

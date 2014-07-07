@@ -16,7 +16,6 @@ import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.hereclient.service.LocationService;
 import info.paveway.log.Logger;
 import info.paveway.util.ServiceUtil;
-import info.paveway.util.StringUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -223,25 +222,13 @@ public class MapActivity extends AbstractBaseActivity {
         mLocationReceiver = new LocationBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Action.ACTION_LOCATION);
-        if (null == registerReceiver(mLocationReceiver, filter)) {
-            mLogger.w("OUT(NG)");
-            toast(R.string.error_broadcast_receiver);
-            mLocationReceiver = null;
-            finish();
-            return;
-        }
+        registerReceiver(mLocationReceiver, filter);
 
         // 情報取得失敗ブロードキャストレシーバーを登録する。
         mLocationFailedReceiver = new LocationFailedReceiver();
         IntentFilter failedFilter = new IntentFilter();
         failedFilter.addAction(Action.ACTION_LOCATION_FAILED);
-        if (null == registerReceiver(mLocationFailedReceiver, failedFilter)) {
-            mLogger.w("OUT(NG)");
-            toast(R.string.error_broadcast_receiver);
-            mLocationFailedReceiver = null;
-            finish();
-            return;
-        }
+        registerReceiver(mLocationFailedReceiver, failedFilter);
 
         // 位置サービスを開始する。
         if (!startLocationService()) {
