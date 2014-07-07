@@ -8,5 +8,6 @@ package info.paveway.hereclient.data;
  * @version 1.0 新規作成
  *
  */
+@SuppressWarnings("serial")
 public class UserData extends AbstractBaseData {
 }

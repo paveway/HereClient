@@ -1,6 +1,9 @@
 package info.paveway.hereclient.service;
 
+import info.paveway.hereclient.CommonConstants.Action;
+import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.log.Logger;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
@@ -14,8 +17,16 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 
+/**
+ * ここにいるクライアント
+ * 位置サービスクラス
+ *
+ * @version 1.0 新規作成
+ *
+ */
 public class LocationService extends Service {
 
+    /** ロガー */
     private Logger mLogger = new Logger(LocationService.class);
 
     /** ロケーションクライアント */
@@ -27,14 +38,29 @@ public class LocationService extends Service {
     /** ロケーションリスナー */
     private LocationListener mLocationListener;
 
+    /**
+     * バインドした時に呼び出される。
+     *
+     * @param intent インテント
+     * @return バインダー
+     */
     @Override
     public IBinder onBind(Intent intent) {
+        mLogger.d("IN");
+
         // バインドは拒否する。
+
+        mLogger.d("OUT(OK)");
         return null;
     }
 
+    /**
+     * 生成された時に呼び出される。
+     */
     @Override
     public void onCreate() {
+        mLogger.d("IN");
+
         // ロケーションリクエストを生成する。
         mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -49,33 +75,10 @@ public class LocationService extends Service {
                 new LocationClient(
                         LocationService.this,
                         new LocationConnectionCallbacks(),
-                        new LocationOnConnectionFailedListenerImpl());
+                        new LocationOnConnectionFailedListener());
+
+        // 接続する。
         mLocationClient.connect();
-    }
-
-    /**
-     * ロケーション更新を開始する。
-     */
-    private void startLocationUpdates() {
-        mLogger.d("IN");
-
-        // 接続済みの場合
-        if (mLocationClient.isConnected()) {
-            // ロケーション更新を要求する。
-            mLocationClient.requestLocationUpdates(mLocationRequest, mLocationListener);
-        }
-
-        mLogger.d("OUT(OK)");
-    }
-
-    /**
-     * ロケーション更新を停止する。
-     */
-    private void stopLocationUpdates() {
-        mLogger.d("IN");
-
-        // ロケーション更新を解除する。
-        mLocationClient.removeLocationUpdates(mLocationListener);
 
         mLogger.d("OUT(OK)");
     }
@@ -117,6 +120,33 @@ public class LocationService extends Service {
 
             mLogger.i("OUT(OK)");
         }
+
+        /**
+         * ロケーション更新を開始する。
+         */
+        private void startLocationUpdates() {
+            mLogger.d("IN");
+
+            // 接続済みの場合
+            if (mLocationClient.isConnected()) {
+                // ロケーション更新を要求する。
+                mLocationClient.requestLocationUpdates(mLocationRequest, mLocationListener);
+            }
+
+            mLogger.d("OUT(OK)");
+        }
+
+        /**
+         * ロケーション更新を停止する。
+         */
+        private void stopLocationUpdates() {
+            mLogger.d("IN");
+
+            // ロケーション更新を解除する。
+            mLocationClient.removeLocationUpdates(mLocationListener);
+
+            mLogger.d("OUT(OK)");
+        }
     }
 
     /**************************************************************************/
@@ -124,10 +154,10 @@ public class LocationService extends Service {
      * ロケーション接続失敗リスナークラス
      *
      */
-    private class LocationOnConnectionFailedListenerImpl implements OnConnectionFailedListener {
+    private class LocationOnConnectionFailedListener implements OnConnectionFailedListener {
 
         /** ロガー */
-        private Logger mLogger = new Logger(LocationOnConnectionFailedListenerImpl.class);
+        private Logger mLogger = new Logger(LocationOnConnectionFailedListener.class);
 
         /**
          * 接続が失敗した時に呼び出される。
@@ -178,6 +208,12 @@ public class LocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             mLogger.i("IN");
+
+            Intent intent = new Intent();
+            intent.setAction(Action.ACTION_LOCATION);
+            intent.putExtra(ExtraKey.USER_LATITUDE, location.getLatitude());
+            intent.putExtra(ExtraKey.USER_LONGITUDE, location.getLongitude());
+            sendBroadcast(intent);
 
             mLogger.i("OUT(OK)");
         }

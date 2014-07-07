@@ -1,5 +1,6 @@
 package info.paveway.hereclient.loader;
 
+import info.paveway.hereclient.MapActivity;
 import info.paveway.hereclient.dialog.LoginDialog;
 import info.paveway.hereclient.dialog.ProgressStatusDialog;
 import info.paveway.log.Logger;
@@ -67,9 +68,14 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     public Loader<String> onCreateLoader(int id, Bundle bundle) {
         mLogger.i("IN id=[" + id + "]");
 
-        if (mContext instanceof ActionBarActivity) {
+        // マップ画面以外の場合
+        if (!(mContext instanceof MapActivity)) {
             // 処理中ダイアログを表示する。
             FragmentManager manager = ((ActionBarActivity)mContext).getSupportFragmentManager();
+            if (null != mProgressDialog) {
+                mProgressDialog.dismiss();
+                mProgressDialog = null;
+            }
             mProgressDialog = ProgressStatusDialog.newInstance("処理中", "しばらくお待ちください");
             mProgressDialog.setCancelable(false);
             mProgressDialog.show(manager, LoginDialog.class.getSimpleName());
@@ -94,12 +100,14 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     public void onLoadFinished(Loader<String> loader, String response) {
         mLogger.i("IN response=[" + response + "]");
 
-        if (mContext instanceof ActionBarActivity) {
+        // マップ画面以外の場合
+        if (!(mContext instanceof MapActivity)) {
             // 処理中ダイアログを閉じる。
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     mProgressDialog.dismiss();
+                    mProgressDialog = null;
                 }
             });
         }

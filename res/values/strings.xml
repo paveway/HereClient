@@ -94,5 +94,7 @@
     <string name="error_init_map">マップの初期化ができませんでした</string>
     <string name="error_edit_memo">メモを登録できませんでした</string>
     <string name="error_delete_memo">メモを削除できませんでした</string>
+    <string name="error_broadcast_receiver">ブロードキャストレシーバーを登録できません</string>
+    <string name="error_start_location_service">位置サービスを開始できませんでした</string>
 
 </resources>

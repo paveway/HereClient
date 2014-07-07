@@ -10,6 +10,7 @@ import java.util.List;
  * @version 1.0 新規作成
  *
  */
+@SuppressWarnings("serial")
 public class RoomData extends AbstractBaseData {
 
     /** オーナーID */

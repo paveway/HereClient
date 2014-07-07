@@ -1,5 +1,6 @@
 package info.paveway.hereclient.data;
 
+@SuppressWarnings("serial")
 public class LocationData extends AbstractBaseData {
 
     private double mLatitude;

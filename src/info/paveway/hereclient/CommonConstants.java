@@ -228,4 +228,10 @@ public class CommonConstants {
         /** 接続エラー解決要求 */
         public static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     }
+
+    public class Action {
+        public static final String ACTION_LOCATION = "info.paveway.hereclient.ACTION_LOCATION";
+
+        public static final String ACTION_LOCATION_FAILED = "info.paveway.hereclient.ACTION_LOCATION_FAILED";
+    }
 }
