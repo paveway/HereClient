@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:title="@string/category_action_title">
+
+        <CheckBoxPreference
+            android:key="logout"
+            android:title="@string/logged_check_box_title"
+            android:summary="@string/logged_check_box_summary"/>
+
+        <CheckBoxPreference
+            android:key="exitRoom"
+            android:title="@string/entered_room_check_box_title"
+            android:summary="@string/entered_room_check_box_summary"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/category_init_title">
+
+    </PreferenceCategory>
+
+        <ListPreference
+            android:key="intervalList"
+            android:title="@string/interval_list_title"
+            android:summary="@string/interval_list_summary"
+            android:dialogTitle="@string/interval_list_dialogtitle"
+            android:entries="@array/interval_list_entries"
+            android:entryValues="@array/interval_list_entryvalues" />
+
+</PreferenceScreen>

@@ -3,6 +3,8 @@ package info.paveway.hereclient;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
+import info.paveway.hereclient.CommonConstants.PrefsKey;
+import info.paveway.hereclient.CommonConstants.RequestCode;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
@@ -24,9 +26,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -38,6 +43,9 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 /**
  * ここにいるクライアント
@@ -116,11 +124,17 @@ public class RoomListActivity extends AbstractBaseActivity {
             return;
         }
 
+        // AdView をリソースとしてルックアップしてリクエストを読み込む
+        AdView adView = (AdView)this.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
+
         String[] drawerListItems = {
                 getResourceString(R.string.drawer_item_create_room),
                 getResourceString(R.string.drawer_item_update_room_list),
                 getResourceString(R.string.drawer_item_logout),
                 getResourceString(R.string.drawer_item_delete_user),
+                getResourceString(R.string.drawer_settngs),
                 getResourceString(R.string.menu_info)};
         mDrawerList = (ListView)findViewById(R.id.drawerList);
         mDrawerList.setAdapter(
@@ -166,8 +180,16 @@ public class RoomListActivity extends AbstractBaseActivity {
                     break;
                 }
 
-                // バージョン情報の場合
+                // 設定の場合
                 case 4: {
+                    // 設定画面を表示する。
+                    Intent intent = new Intent(RoomListActivity.this, SettingsPreferenceActivity.class);
+                    startActivityForResult(intent, RequestCode.SETTINGS);
+                    break;
+                }
+
+                // バージョン情報の場合
+                case 5: {
                     // バージョン情報ダイアログを表示する。
                     FragmentManager manager = getSupportFragmentManager();
                     InfoDialog infoDialog = InfoDialog.newInstance();
@@ -339,6 +361,41 @@ public class RoomListActivity extends AbstractBaseActivity {
         LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
         looutDialog.setCancelable(false);
         looutDialog.show(manager, LogoutDialog.class.getSimpleName());
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // 設定画面の場合
+        if (RequestCode.SETTINGS == requestCode) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(RoomListActivity.this);
+
+            // ログイン済みとログアウト設定を取得する。
+            boolean logged = prefs.getBoolean(PrefsKey.LOGGED, false);
+            boolean logout = prefs.getBoolean(PrefsKey.LOGOUT, false);
+
+            // ログイン済みかつログアウトする場合
+            if (logged && logout) {
+                // ログイン済み設定値をクリアする。
+                Editor editor = prefs.edit();
+                editor.putBoolean(PrefsKey.LOGGED,        false);
+                editor.putString( PrefsKey.USER_NAME,     "");
+                editor.putString( PrefsKey.USER_PASSWORD, "");
+                editor.commit();
+            }
+
+            // 入室済みと退出設定を取得する。
+            boolean enteredRoom = prefs.getBoolean(PrefsKey.ENTERED_ROOM, false);
+            boolean exitRoom = prefs.getBoolean(PrefsKey.EXIT_ROOM, false);
+
+            // 入室済みかつ退出する場合
+            if (enteredRoom && exitRoom) {
+                // 入室済み設定値をクリアする。
+                Editor editor = prefs.edit();
+                editor.putBoolean(PrefsKey.ENTERED_ROOM, false);
+                editor.putString( PrefsKey.ROOM_KEY,     "");
+                editor.commit();
+            }
+        }
     }
 
     /**

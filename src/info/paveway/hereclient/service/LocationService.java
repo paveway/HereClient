@@ -2,12 +2,15 @@ package info.paveway.hereclient.service;
 
 import info.paveway.hereclient.CommonConstants.Action;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
+import info.paveway.hereclient.CommonConstants.PrefsKey;
 import info.paveway.log.Logger;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -27,6 +30,9 @@ public class LocationService extends Service {
 
     /** ロガー */
     private Logger mLogger = new Logger(LocationService.class);
+
+    /** ミリ秒 */
+    private static final long MILLI_SEC = 1000;
 
     /** ロケーションクライアント */
     private LocationClient mLocationClient;
@@ -61,9 +67,11 @@ public class LocationService extends Service {
         mLogger.d("IN");
 
         // ロケーションリクエストを生成する。
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        long interval = prefs.getLong(PrefsKey.INTERVAL_LIST, 30);
         mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(30 * 1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+        mLocationRequest.setInterval(interval * MILLI_SEC);
         mLocationRequest.setFastestInterval(30 * 1000);
 
         // ロケーションリスナーを生成する。

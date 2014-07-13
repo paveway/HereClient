@@ -3,10 +3,10 @@ package info.paveway.hereclient.loader;
 import android.os.Bundle;
 
 /**
- * ここにいるクライアント
  * レスポンス受信リスナーインターフェースクラス
  *
  * @version 1.0 新規作成
+ *
  */
 public interface OnReceiveResponseListener {
 

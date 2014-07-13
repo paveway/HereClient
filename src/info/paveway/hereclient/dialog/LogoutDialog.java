@@ -4,7 +4,6 @@ import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
-import info.paveway.hereclient.MainActivity;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
@@ -18,7 +17,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -177,11 +175,6 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
                 public void run() {
                     dismiss();
                     getActivity().finish();
-
-                    // ログイン画面を表示する。
-                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
                 }
             });
 

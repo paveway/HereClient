@@ -14,6 +14,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
 
+            <ToggleButton
+                android:id="@+id/followToggleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOn="@string/activity_map_follow_toggle_button_on"
+                android:textOff="@string/activity_map_follow_toggle_button_off" />
+
         </RelativeLayout>
 
         <LinearLayout

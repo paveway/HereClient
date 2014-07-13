@@ -10,6 +10,39 @@ package info.paveway.hereclient;
 public class CommonConstants {
 
     /**
+     * プリフェレンスキー定数
+     *
+     */
+    public class PrefsKey {
+        /** ズーム */
+        public static final String ZOOM = "zoom";
+
+        /** チルト */
+        public static final String TILT = "tilt";
+
+        /** ベアリング */
+        public static final String BEARING = "bearing";
+
+        /** ログイン済み */
+        public static final String LOGGED = "logged";
+
+        /** 入室済み */
+        public static final String ENTERED_ROOM = "enteredRoom";
+
+        public static final String LOGOUT = "logout";
+        public static final String EXIT_ROOM = "exitRoom";
+
+        /** 更新間隔リスト */
+        public static final String INTERVAL_LIST = "intervalList";
+
+        public static final String USER_NAME = "userName";
+
+        public static final String USER_PASSWORD = "userPassword";
+
+        public static final String ROOM_KEY = "roomKey";
+    }
+
+    /**
      * URL定数
      *
      */
