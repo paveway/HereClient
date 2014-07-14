@@ -134,6 +134,7 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
     private void doCancelButton() {
         mLogger.d("IN");
 
+        // ダイアログを終了する。
         dismiss();
 
         mLogger.d("OUT(OK)");
@@ -181,7 +182,10 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    // ダイアログを終了する。
                     dismiss();
+
+                    // 呼び出し元画面を終了する。
                     getActivity().finish();
                 }
             });

@@ -10,6 +10,7 @@
     <string name="menu_logout">ログアウト</string>
     <string name="menu_delete_user">ユーザ削除</string>
     <string name="menu_info">バージョン情報</string>
+    <string name="menu_settings">設定</string>
 
     <!-- ドロワーアイテム -->
     <string name="drawer_item_create_room">新規ルーム作成</string>
@@ -18,6 +19,8 @@
     <string name="drawer_item_delete_user">ユーザ削除</string>
     <string name="drawer_open">開く</string>
     <string name="drawer_close">閉じる</string>
+    <string name="drawer_exit_room">退室</string>
+    <string name="drawer_settngs">設定</string>
 
     <!-- ダイアログボタン -->
     <string name="dialog_create_button">作成</string>
@@ -57,6 +60,7 @@
 
     <!-- 入室ダイアログ -->
     <string name="dialog_enter_room_title">入室</string>
+    <string name="dialog_entered_room_check_box">次回入室済みとする</string>
 
     <!-- 退室ダイアログ -->
     <string name="dialog_exit_room_title">退室</string>
@@ -77,6 +81,29 @@
     <string name="dialog_info_title">バージョン情報</string>
     <string name="dialog_info_message_prefix">ここにいる\nVer.</string>
     <string name="dialog_info_message_suffix">\nCopyright(C) paveway.info. All rights reserved.</string>
+
+    <!-- マップ画面 -->
+    <string name="activity_map_follow_toggle_button_on">追従ON</string>
+    <string name="activity_map_follow_toggle_button_off">追従OFF</string>
+
+    <!-- 設定画面 -->
+    <string name="category_action_title">動作</string>
+
+    <string name="logged_check_box_title">ログイン済み</string>
+    <string name="logged_check_box_summary">ログイン済みを設定/解除します</string>
+    <string name="entered_room_check_box_title">入室済み</string>
+    <string name="entered_room_check_box_summary">入室済みを設定/解除します</string>
+
+    <string name="category_init_title">初期値</string>
+
+    <string name="interval_list_title">更新間隔</string>
+    <string name="interval_list_summary">位置情報を更新する間隔を選択してください</string>
+    <string name="interval_list_dialogtitle">更新間隔選択</string>
+
+    <!-- カメラポジション初期値 -->
+    <string name="camera_position_zoom">15</string>
+    <string name="camera_position_titlt">0</string>
+    <string name="camera_position_bearing">0</string>
 
     <!-- エラーメッセージ -->
     <string name="error_response">エラーが発生しました</string>

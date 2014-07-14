@@ -4,7 +4,6 @@ import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
-import info.paveway.hereclient.MainActivity;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
@@ -18,7 +17,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -65,6 +63,7 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mLogger.d("IN");
 
+        // ユーザデータを取得する。
         mUserData = (UserData)getArguments().getSerializable(ExtraKey.USER_DATA);
 
         // ログアウトダイアログを設定する。
@@ -128,6 +127,7 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
     private void doCancelButton() {
         mLogger.d("IN");
 
+        // ダイアログを終了する。
         dismiss();
 
         mLogger.d("OUT(OK)");
@@ -175,13 +175,11 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    // ダイアログを終了する。
                     dismiss();
-                    getActivity().finish();
 
-                    // ログイン画面を表示する。
-                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
+                    // 呼び出し元画面を終了する。
+                    getActivity().finish();
                 }
             });
 

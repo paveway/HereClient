@@ -4,11 +4,11 @@ import info.paveway.hereclient.CommonConstants.Action;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
+import info.paveway.hereclient.CommonConstants.PrefsKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.data.LocationData;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.dialog.EditMemoDialog;
 import info.paveway.hereclient.dialog.ExitRoomDialog;
 import info.paveway.hereclient.dialog.LogoutDialog;
 import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
@@ -29,8 +29,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -41,9 +44,13 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ToggleButton;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.MapFragment;
@@ -63,6 +70,9 @@ public class MapActivity extends AbstractBaseActivity {
 
     /** ロガー */
     private Logger mLogger = new Logger(MapActivity.class);
+
+    /** プリフェレンス */
+    SharedPreferences mPrefs;
 
     /** 位置ブロードキャストレシーバー */
     private LocationBroadcastReceiver mLocationReceiver;
@@ -85,8 +95,14 @@ public class MapActivity extends AbstractBaseActivity {
     /** ルームデータ */
     private RoomData mRoomData;
 
+    /** 追従トグルボタン */
+    private ToggleButton mFollowToggleButton;
+
     /** Googleマップ */
     private GoogleMap mGoogleMap;
+
+    /** カメラポジション */
+    private CameraPosition mCameraPosition;
 
     /** マーカーマップ */
     private static Map<String, Marker> mMarkerMap = new HashMap<String, Marker>();
@@ -139,13 +155,19 @@ public class MapActivity extends AbstractBaseActivity {
             return;
         }
 
-        // リソースを取得する。
-        mResources = getResources();
+        // プリフェレンスを取得する。
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(MapActivity.this);
+
+        // AdView をリソースとしてルックアップしてリクエストを読み込む
+        AdView adView = (AdView)this.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
 
         // ドロワーリストアイテムを設定する。
         String[] drawerListItems = {
-                "退室",
-                "ログアウト"};
+                getResourceString(R.string.drawer_exit_room),
+                getResourceString(R.string.drawer_settngs),
+                getResourceString(R.string.drawer_item_logout)};
         mDrawerList = (ListView)findViewById(R.id.drawerList);
         mDrawerList.setAdapter(
                 new ArrayAdapter<String>(
@@ -164,8 +186,16 @@ public class MapActivity extends AbstractBaseActivity {
                     break;
                 }
 
-                // ログアウトの場合
+                // 設定の場合
                 case 1: {
+                    // 設定画面を表示する。
+                    Intent intent = new Intent(MapActivity.this, SettingsPreferenceActivity.class);
+                    startActivity(intent);
+                    break;
+                }
+
+                // ログアウトの場合
+                case 2: {
                     // ログアウトダイアログを表示する。
                     FragmentManager manager = getSupportFragmentManager();
                     LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
@@ -197,6 +227,9 @@ public class MapActivity extends AbstractBaseActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+        // 追従トグルボタンを取得する。
+        mFollowToggleButton = (ToggleButton)findViewById(R.id.followToggleButton);
+
         // マップフラグメントを取得する。
         MapFragment mapFragment = (MapFragment)(getFragmentManager().findFragmentById(R.id.map));
         try {
@@ -209,7 +242,7 @@ public class MapActivity extends AbstractBaseActivity {
                 mapFragment.setRetainInstance(true);
 
                 // 地図の初期設定を行う。
-                mapInit();
+                initMap();
             }
         } catch (Exception e) {
             mLogger.e(e);
@@ -218,19 +251,19 @@ public class MapActivity extends AbstractBaseActivity {
             return;
         }
 
-        // 位置ブロードキャストレシーバーを登録する。
+        // 位置取得ブロードキャストレシーバーを登録する。
         mLocationReceiver = new LocationBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Action.ACTION_LOCATION);
         registerReceiver(mLocationReceiver, filter);
 
-        // 情報取得失敗ブロードキャストレシーバーを登録する。
+        // 位置取得失敗ブロードキャストレシーバーを登録する。
         mLocationFailedReceiver = new LocationFailedReceiver();
         IntentFilter failedFilter = new IntentFilter();
         failedFilter.addAction(Action.ACTION_LOCATION_FAILED);
         registerReceiver(mLocationFailedReceiver, failedFilter);
 
-        // 位置サービスを開始する。
+        // 位置取得サービスを開始する。
         if (!startLocationService()) {
             mLogger.w("OUT(NG)");
             toast(R.string.error_start_location_service);
@@ -241,6 +274,9 @@ public class MapActivity extends AbstractBaseActivity {
         mLogger.d("OUT(OK)");
     }
 
+    /**
+     * 終了する時に呼び出される。
+     */
     @Override
     public void onDestroy() {
         mLogger.d("IN");
@@ -248,18 +284,21 @@ public class MapActivity extends AbstractBaseActivity {
         // 一サービスを停止する。
         stopLocationService();
 
+        // 位置取得失敗ブロードキャストレシーバーが有効な場合
         if (null != mLocationFailedReceiver) {
             // 位置情報取得失敗ブロードキャストレシーバーの登録を解除する。
             unregisterReceiver(mLocationFailedReceiver);
             mLocationFailedReceiver = null;
         }
 
+        // 位置取得ブロードキャストレシーバーが有効な場合
         if (null != mLocationReceiver) {
             // 位置ブロードキャストレシーバーの登録を解除する。
             unregisterReceiver(mLocationReceiver);
             mLocationReceiver = null;
         }
 
+        // スーパークラスのメソッドを呼び出す。
         super.onDestroy();
 
         mLogger.d("OUT(OK)");
@@ -335,6 +374,15 @@ public class MapActivity extends AbstractBaseActivity {
             return true;
         }
 
+        // 設定の場合
+        case R.id.menu_settings: {
+            // 設定画面を表示する。
+            Intent intent = new Intent(MapActivity.this, SettingsPreferenceActivity.class);
+            startActivity(intent);
+            mLogger.d("OUT(OK)");
+            return true;
+        }
+
         // ログアウトの場合
         case R.id.menu_logout: {
             // ログアウトダイアログを表示する。
@@ -373,7 +421,7 @@ public class MapActivity extends AbstractBaseActivity {
     /**
      * 地図の初期化を行う。
      */
-    private void mapInit() {
+    private void initMap() {
         mLogger.d("IN");
 
         // 地図タイプを設定する。
@@ -382,6 +430,10 @@ public class MapActivity extends AbstractBaseActivity {
         // 現在位置ボタンの表示する。
         mGoogleMap.setMyLocationEnabled(true);
 
+        // マップカメラチェンジリスナーを設定する。
+        mGoogleMap.setOnCameraChangeListener(new MapOnCameraChangeListener());
+
+        // マップクリックリスナーを設定する。
         mGoogleMap.setOnMapClickListener(new MapOnMapClickListener());
 
         // マーカークリックリスナーを設定する。
@@ -398,6 +450,7 @@ public class MapActivity extends AbstractBaseActivity {
     private void setLocationMarker(LocationData locationData) {
         mLogger.d("IN");
 
+        // 名前を取得する。
         String name = locationData.getName();
 
         // IDのマーカーを取得する。
@@ -409,10 +462,12 @@ public class MapActivity extends AbstractBaseActivity {
             marker.remove();
             mMarkerMap.remove(name);
 
+        // 取得できない場合
         } else {
             mLogger.d("Marker not exist.");
         }
 
+        // マーカーを再設定する。
         MarkerOptions options = new MarkerOptions();
         options.position(new LatLng(locationData.getLatitude(), locationData.getLongitude()));
         options.title(name);
@@ -427,17 +482,22 @@ public class MapActivity extends AbstractBaseActivity {
     private boolean startLocationService() {
         mLogger.d("IN");
 
+        // コンポーネント名
         ComponentName name = null;
 
-        // 位置サービスが停止してる場合
+        // 位置取得サービスが停止してる場合
         if (!ServiceUtil.isServiceRunning(MapActivity.this, LocationService.class)) {
-            // 位置サービスを開始する。
+            // 位置取得サービスを開始する。
             name = startService(new Intent(this, LocationService.class));
             mLogger.d("ComponentName=[" + name + "]");
         }
+
+        // 位置取得サービスが開始できた場合
         if (null != name) {
             mLogger.d("OUT(OK)");
             return true;
+
+        // 位置取得サービスが開始できない場合
         } else {
             mLogger.d("OUT(NG)");
             return false;
@@ -467,6 +527,12 @@ public class MapActivity extends AbstractBaseActivity {
         /** ロガー */
         private Logger mLogger = new Logger(LocationBroadcastReceiver.class);
 
+        /**
+         * ブロードキャストを受信した時に呼び出される。
+         *
+         * @param context コンテキスト
+         * @param intent インテント
+         */
         @Override
         public void onReceive(Context context, Intent intent) {
             mLogger.d("IN");
@@ -474,7 +540,7 @@ public class MapActivity extends AbstractBaseActivity {
             // インテントが取得できない場合
             if (null == intent) {
                 // 終了する。
-                mLogger.d("OUT(NG)");
+                mLogger.w("OUT(NG)");
                 return;
             }
 
@@ -484,16 +550,53 @@ public class MapActivity extends AbstractBaseActivity {
             // 緯度または経度が取得できない場合
             if ((-1 == latitude) || (-1 == longitude)) {
                 // 終了する。
-                mLogger.d("OUT(NG)");
+                mLogger.w("OUT(NG)");
                 return;
             }
 
-            CameraPosition cameraPos = new CameraPosition.Builder()
-            .target(new LatLng(latitude, longitude)).zoom(7.0f)
-            .bearing(0).build();
-            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
+            // 追従する場合
+            if (mFollowToggleButton.isChecked()) {
+                // カメラポジションを生成する。
+                CameraPosition.Builder builder = new CameraPosition.Builder();
+                LatLng latLng = new LatLng(latitude, longitude);
+                float zoom = -1;
+                float tilt = -1;
+                float bearing = -1;
 
-            // ローダーを初期化する。
+                // カメラポジションが未生成の場合
+                if (null == mCameraPosition) {
+                    // カメラポジションを初期値で生成する。
+                    zoom = mPrefs.getFloat(PrefsKey.ZOOM, -1);
+                    if (-1 == zoom) {
+                        zoom = Float.parseFloat(getResourceString(R.string.camera_position_zoom));
+                    }
+                    tilt = mPrefs.getFloat(PrefsKey.TILT, -1);
+                    if (-1 == tilt) {
+                        tilt = Float.parseFloat(getResourceString(R.string.camera_position_titlt));
+                    }
+                    bearing = mPrefs.getFloat(PrefsKey.BEARING, -1);
+                    if (-1 == bearing) {
+                        bearing = Float.parseFloat(getResourceString(R.string.camera_position_bearing));
+                    }
+
+                // カメラポジションが生成済みの場合
+                } else {
+                    // カメラポジションに取得済みデータを設定する。
+                    bearing = mCameraPosition.bearing;
+                    tilt    = mCameraPosition.tilt;
+                    zoom    = mCameraPosition.zoom;
+                }
+
+                // カメラポジションを設定する。
+                builder.target(latLng);
+                builder.zoom(zoom);
+                builder.tilt(tilt);
+                builder.bearing(bearing);
+                mCameraPosition = builder.build();
+                mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+            }
+
+            // 位置情報送信ローダーを初期化する。
             Bundle bundle = new Bundle();
             bundle.putString(ParamKey.URL,       Url.SEND_LOCATION);
             bundle.putString(ParamKey.ROOM_NAME, mRoomData.getName());
@@ -503,7 +606,7 @@ public class MapActivity extends AbstractBaseActivity {
             bundle.putString(ParamKey.LATITUDE,  String.valueOf(latitude));
             bundle.putString(ParamKey.LONGITUDE, String.valueOf(longitude));
 
-            // ローダーを再スタートする。
+            // 位置情報送信ローダーを再スタートする。
             getSupportLoaderManager().restartLoader(
                     LoaderId.SEND_LOCATION,
                     bundle,
@@ -524,9 +627,17 @@ public class MapActivity extends AbstractBaseActivity {
         /** ロガー */
         private Logger mLogger = new Logger(LocationFailedReceiver.class);
 
+        /**
+         * ブロードキャストを受信した時に呼び出される。
+         *
+         * @param context コンテキスト
+         * @param intent インテント
+         */
         @Override
         public void onReceive(Context context, Intent intent) {
             mLogger.d("IN");
+
+            // ★実装内容は検討中
 
             mLogger.d("OUT(OK)");
         }
@@ -559,7 +670,7 @@ public class MapActivity extends AbstractBaseActivity {
                 // ステータスを取得する。
                 boolean status = json.getBoolean(ParamKey.STATUS);
 
-                // 削除成功の場合
+                // 取得成功の場合
                 if (status) {
                     // 位置データ数を取得する。
                     int locationDataNum = json.getInt(ParamKey.LOCATION_DATA_NUM);
@@ -596,7 +707,43 @@ public class MapActivity extends AbstractBaseActivity {
 
     /**************************************************************************/
     /**
-     * マッククリックリスナークラス
+     * カメラチェンジリスナークラス
+     *
+     */
+    private class MapOnCameraChangeListener implements OnCameraChangeListener {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(MapOnCameraChangeListener.class);
+
+        /**
+         * カメラポジションが変更された時に呼び出される。
+         *
+         * @param カメラポジション
+         */
+        @Override
+        public void onCameraChange(CameraPosition cameraPosition) {
+            mLogger.d("IN bearing=[" + cameraPosition.bearing + "] tilt=[" + cameraPosition.tilt + "] zoom=[" + cameraPosition.zoom + "]");
+
+            // カメラポジションを保存する。
+            mCameraPosition = cameraPosition;
+
+            // 次回起動時用に保存する。
+            Editor editor = mPrefs.edit();
+            editor.putFloat(PrefsKey.ZOOM,    mCameraPosition.zoom);
+            editor.putFloat(PrefsKey.TILT,    mCameraPosition.tilt);
+            editor.putFloat(PrefsKey.BEARING, mCameraPosition.bearing);
+            editor.commit();
+
+            // カメラポジションを再設定する。
+            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+
+            mLogger.d("OUT(OK)");
+        }
+    }
+
+    /**************************************************************************/
+    /**
+     * マップクリックリスナークラス
      *
      */
     private class MapOnMapClickListener implements OnMapClickListener {
@@ -613,11 +760,12 @@ public class MapActivity extends AbstractBaseActivity {
         public void onMapClick(LatLng latlng) {
             mLogger.d("IN");
 
-            // メモ編集ダイアログを表示する。
-            FragmentManager manager = getSupportFragmentManager();
-            EditMemoDialog dialog = EditMemoDialog.newInstance(mUserData, mRoomData, latlng.latitude, latlng.longitude);
-            dialog.setCancelable(false);
-            dialog.show(manager, EditMemoDialog.class.getSimpleName());
+            // ★実装中
+//            // メモ編集ダイアログを表示する。
+//            FragmentManager manager = getSupportFragmentManager();
+//            EditMemoDialog dialog = EditMemoDialog.newInstance(mUserData, mRoomData, latlng.latitude, latlng.longitude);
+//            dialog.setCancelable(false);
+//            dialog.show(manager, EditMemoDialog.class.getSimpleName());
 
             mLogger.d("OUT(OK)");
         }

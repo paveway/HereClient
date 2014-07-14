@@ -1,7 +1,5 @@
 package info.paveway.hereclient.loader;
 
-import info.paveway.hereclient.MapActivity;
-import info.paveway.hereclient.dialog.LoginDialog;
 import info.paveway.hereclient.dialog.ProgressStatusDialog;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
@@ -15,10 +13,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.widget.Toast;
 
 /**
- * ここにいるクライアント
  * 基底ローダーコールバック抽象クラス
  *
  * @version 1.0 新規作成
+ *
  */
 public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<String> {
 
@@ -31,8 +29,8 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     /** ハンドラー */
     protected Handler mHandler = new Handler();
 
-    /** ID */
-    protected int mId;
+    /** ローダーID */
+    protected int mLoaderId;
 
     /** バンドル */
     protected Bundle mBundle;
@@ -61,15 +59,15 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     /**
      * 生成された時に呼び出される。
      *
-     * @param id ローダーID
+     * @param loaderId ローダーID
      * @param bundle 引き渡されたデータ
      */
     @Override
-    public Loader<String> onCreateLoader(int id, Bundle bundle) {
-        mLogger.i("IN id=[" + id + "]");
+    public Loader<String> onCreateLoader(int loaderId, Bundle bundle) {
+        mLogger.i("IN loaderId=[" + loaderId + "]");
 
-        // マップ画面以外の場合
-        if (!(mContext instanceof MapActivity)) {
+        // 処理状態表示ダイアログを表示する場合
+        if (isShowProgressStatusDialog()) {
             // 処理中ダイアログを表示する。
             FragmentManager manager = ((ActionBarActivity)mContext).getSupportFragmentManager();
             if (null != mProgressDialog) {
@@ -78,12 +76,16 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
             }
             mProgressDialog = ProgressStatusDialog.newInstance("処理中", "しばらくお待ちください");
             mProgressDialog.setCancelable(false);
-            mProgressDialog.show(manager, LoginDialog.class.getSimpleName());
+            mProgressDialog.show(manager, ProgressStatusDialog.class.getSimpleName());
         }
 
-        mId = id;
+        mLoaderId = loaderId;
         mBundle = bundle;
+
+        // ローダーを生成する。
         Loader<String> loader = createLoader(bundle);
+
+        // ローダーを強制ロードする。
         loader.forceLoad();
 
         mLogger.i("OUT(OK)");
@@ -100,9 +102,9 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     public void onLoadFinished(Loader<String> loader, String response) {
         mLogger.i("IN response=[" + response + "]");
 
-        // マップ画面以外の場合
-        if (!(mContext instanceof MapActivity)) {
-            // 処理中ダイアログを閉じる。
+        // 処理状態表示ダイアログを表示する場合
+        if (isShowProgressStatusDialog()) {
+            // 処理中ダイアログを閉じる。　
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -113,7 +115,7 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
         }
 
         // 対象のローダーの場合
-        if (loader.getId() == mId) {
+        if (loader.getId() == mLoaderId) {
             // レスポンス文字列がある場合
             if (StringUtil.isNotNullOrEmpty(response)) {
                 // 終了時の処理を行う。
@@ -140,6 +142,16 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
         // 何もしない。
 
         mLogger.i("OUT(OK)");
+    }
+
+    /**
+     * 処理状態表示ダイアログを表示するかチェックする。
+     *
+     * @return 判定結果 true:表示する / false:表示しない
+     */
+    protected boolean isShowProgressStatusDialog() {
+        // コンテキストがActionBarActivityの派生クラスの場合、表示する。
+        return (mContext instanceof ActionBarActivity);
     }
 
     /**

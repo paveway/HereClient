@@ -10,6 +10,45 @@ package info.paveway.hereclient;
 public class CommonConstants {
 
     /**
+     * プリフェレンスキー定数
+     *
+     */
+    public class PrefsKey {
+        /** ズーム */
+        public static final String ZOOM = "zoom";
+
+        /** チルト */
+        public static final String TILT = "tilt";
+
+        /** ベアリング */
+        public static final String BEARING = "bearing";
+
+        /** 更新間隔リスト */
+        public static final String INTERVAL_LIST = "intervalList";
+
+        /** ログイン済みフラグ */
+        public static final String LOGGED = "logged";
+
+        /** 入室済みフラグ */
+        public static final String ENTERED_ROOM = "enteredRoom";
+
+        /** ログアウトフラグ */
+        public static final String LOGOUT = "logout";
+
+        /** 退室フラグ */
+        public static final String EXIT_ROOM = "exitRoom";
+
+        /** ユーザ名 */
+        public static final String USER_NAME = "userName";
+
+        /** パスワード */
+        public static final String USER_PASSWORD = "userPassword";
+
+        /** ルームキー */
+        public static final String ROOM_KEY = "roomKey";
+    }
+
+    /**
      * URL定数
      *
      */
@@ -229,15 +268,30 @@ public class CommonConstants {
         public static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     }
 
+    /**
+     * アクション定数
+     *
+     */
     public class Action {
+        /** 位置情報取得 */
         public static final String ACTION_LOCATION = "info.paveway.hereclient.ACTION_LOCATION";
 
+        /** 位置情報取得エラー */
         public static final String ACTION_LOCATION_FAILED = "info.paveway.hereclient.ACTION_LOCATION_FAILED";
     }
 
+    /**
+     * メモ公開範囲定数
+     *
+     */
     public class MemoRangeValue {
+        /** 自分のみ */
         public static final int SELF = 1;
+
+        /** メンバーのみ */
         public static final int MEMBER = 2;
+
+        /** 全員 */
         public static final int ALL = 3;
     }
 }

@@ -1,29 +1,27 @@
 package info.paveway.hereclient.loader;
 
-import info.paveway.hereclient.CommonConstants.ParamKey;
+
+import java.io.IOException;
+
 import info.paveway.log.Logger;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.content.AsyncTaskLoader;
 
 /**
- * ここにいるクライアント
  * HTTP GETローダークラス
  *
  * @version 1.0 新規作成
+ *
  */
-public class HttpGetLoader extends AsyncTaskLoader<String> {
+public class HttpGetLoader extends AbstractBaseLoader {
 
     /** ロガー */
     private Logger mLogger = new Logger(HttpGetLoader.class);
-
-    /** パラメータ */
-    private Bundle mParams;
 
     /**
      * コンストラクタ
@@ -32,42 +30,27 @@ public class HttpGetLoader extends AsyncTaskLoader<String> {
      * @param params パラメータ
      */
     public HttpGetLoader(Context context, Bundle params) {
-        super(context);
+        // スーパークラスのコンストラクタを呼び出す。
+        super(context, params);
+
         mLogger.d("IN");
-
-        mParams = params;
-
         mLogger.d("OUT(OK)");
     }
 
     /**
-     * ロードされた時に呼び出される。
+     * HTTP通信を実行する。
      *
-     * @param レスポンス文字列
+     * @param client HTTPクライアント
+     * @return レスポンス文字列
+     * @throws ClientProtocolException クライアントプロトコルエラー
+     * @throws IOException IOエラー
      */
     @Override
-    public String loadInBackground() {
-        mLogger.i("IN");
+    protected String execute(HttpClient httpClient) throws ClientProtocolException, IOException {
+        // HTTP GETメソッドを生成する。
+        HttpGet httpGet = new HttpGet(mParams.getString(ParamKey.URL));
 
-        // レスポンス文字列
-        String result = null;
-
-        // HTTPクライアントを生成する。
-        HttpClient httpClient = new DefaultHttpClient();
-        try {
-            // HTTP GETメソッドを生成する。
-            HttpGet httpGet = new HttpGet(mParams.getString(ParamKey.URL));
-
-            // HTTP GETメソッドを実行し、レスポンス文字列を取得する。
-            result = httpClient.execute(httpGet, new HttpResponseHandler());
-        } catch (Exception e) {
-            mLogger.e(e);
-
-        } finally {
-            httpClient.getConnectionManager().shutdown();
-        }
-
-        mLogger.i("OUT(OK) result=[" + result + "]");
-        return result;
+        // HTTP GETメソッドを実行し、レスポンス文字列を取得する。
+        return httpClient.execute(httpGet, new HttpResponseHandler());
     }
 }

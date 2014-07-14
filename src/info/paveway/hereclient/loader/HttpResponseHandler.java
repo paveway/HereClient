@@ -1,5 +1,6 @@
 package info.paveway.hereclient.loader;
 
+
 import info.paveway.log.Logger;
 
 import java.io.IOException;
@@ -13,10 +14,10 @@ import org.apache.http.util.EntityUtils;
 import android.util.Xml.Encoding;
 
 /**
- * ここにいるクライアント
  * HTTPレスポンスハンドラークラス
  *
  * @version 1.0 新規作成
+ *
  */
 public class HttpResponseHandler implements ResponseHandler<String> {
 

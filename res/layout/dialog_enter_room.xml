@@ -49,4 +49,17 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <CheckBox
+            android:id="@+id/enteredRoomCheckBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/dialog_entered_room_check_box"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
 </LinearLayout>

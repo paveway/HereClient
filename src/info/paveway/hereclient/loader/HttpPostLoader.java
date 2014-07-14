@@ -1,23 +1,21 @@
 package info.paveway.hereclient.loader;
 
-import info.paveway.hereclient.CommonConstants.Encoding;
-import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.log.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.content.AsyncTaskLoader;
 
 /**
  * ここにいるここにいるクライアント
@@ -26,13 +24,10 @@ import android.support.v4.content.AsyncTaskLoader;
  * @version 1.0 新規作成
  *
  */
-public class HttpPostLoader extends AsyncTaskLoader<String> {
+public class HttpPostLoader extends AbstractBaseLoader {
 
     /** ロガー */
     private Logger mLogger = new Logger(HttpPostLoader.class);
-
-    /** パラメータ */
-    protected Bundle mParams;
 
     /**
      * コンストラクタ
@@ -42,48 +37,33 @@ public class HttpPostLoader extends AsyncTaskLoader<String> {
      */
     public HttpPostLoader(Context context, Bundle params) {
         // スーパークラスのコンストラクタを呼び出す。
-        super(context);
+        super(context, params);
 
         mLogger.d("IN");
-
-        // パラメータを設定する。
-        mParams = params;
-
         mLogger.d("OUT(OK)");
     }
 
     /**
-     * バックグラウンド処理を行う。
+     * HTTP通信を実行する。
      *
-     * @param 返却されたレスポンス文字列。
+     * @param client HTTPクライアント
+     * @return レスポンス文字列
+     * @throws ClientProtocolException クライアントプロトコルエラー
+     * @throws IOException IOエラー
      */
     @Override
-    public String loadInBackground() {
-        mLogger.i("IN");
+    protected String execute(HttpClient httpClient) throws ClientProtocolException, IOException {
+        // HTTP POSTパラメータを設定する。
+        List<NameValuePair> entities = setEntities();
 
-        String result = "";
+        // HTTP POSTメソッドを生成する。
+        HttpPost httpPost = new HttpPost((String)mParams.getString(ParamKey.URL));
 
-        HttpClient httpClient = new DefaultHttpClient();
-        try {
-            List<NameValuePair> entities = setEntities();
+        // パラメータを設定する。
+        httpPost.setEntity(new UrlEncodedFormEntity(entities, Encoding.UTF_8));
 
-            // HTTP POSTメソッドを生成する。
-            HttpPost httpPost = new HttpPost((String)mParams.getString(ParamKey.URL));
-
-            // パラメータを設定する。
-            httpPost.setEntity(new UrlEncodedFormEntity(entities, Encoding.UTF_8));
-
-            // HTTP POSTメソッドを実行する。
-            result = httpClient.execute(httpPost, new HttpResponseHandler());
-        } catch (Exception e) {
-            mLogger.e(e);
-
-        } finally {
-            httpClient.getConnectionManager().shutdown();
-        }
-
-        mLogger.i("OUT(OK) result=[" + result + "]");
-        return result;
+        // HTTP POSTメソッドを実行する。
+        return httpClient.execute(httpPost, new HttpResponseHandler());
     }
 
     /**

@@ -7,22 +7,27 @@
         android:id="@+id/menu_create_room"
         android:title="@string/menu_create_room"
         app:showAsAction="never"/>
-    
+
     <item
         android:id="@+id/menu_update_room_list"
         android:title="@string/menu_update_room_list"
         app:showAsAction="never"/>
-    
+
     <item
         android:id="@+id/menu_logout"
         android:title="@string/menu_logout"
         app:showAsAction="never"/>
-    
+
     <item
         android:id="@+id/menu_delete_user"
         android:title="@string/menu_delete_user"
         app:showAsAction="never"/>
-    
+
+    <item
+        android:id="@+id/menu_settings"
+        android:title="@string/menu_settings"
+        app:showAsAction="never"/>
+
     <item
         android:id="@+id/menu_info"
         android:title="@string/menu_info"
