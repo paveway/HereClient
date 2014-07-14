@@ -3,7 +3,6 @@ package info.paveway.hereclient.dialog;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
-import info.paveway.hereclient.CommonConstants.PrefsKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.MapActivity;
 import info.paveway.hereclient.R;
@@ -21,15 +20,11 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -47,9 +42,6 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
     /** ハンドラー */
     private Handler mHandler = new Handler();
 
-    /** プリフェレンス */
-    private SharedPreferences mPrefs;
-
     /** ユーザデータ */
     private UserData mUserData;
 
@@ -58,12 +50,6 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
 
     /** ルームキー入力 */
     private EditText mRoomKeyValue;
-
-    /** 入室済みチェックボックス */
-    private CheckBox mEnteredRoomCheckBox;
-
-    /** ルームキー */
-    private String mRoomKey;
 
     /**
      * インスタンスを返却する。
@@ -92,26 +78,6 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mLogger.d("IN");
 
-        // 設定値を取得する。
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        boolean enteredRoom = mPrefs.getBoolean(PrefsKey.ENTERED_ROOM, false);
-        String roomKey = mPrefs.getString(PrefsKey.ROOM_KEY, "");
-
-        // 入室済みフラグまたはルームキーが未設定の場合
-        if (!enteredRoom || StringUtil.isNullOrEmpty(roomKey)) {
-            // 設定値をクリアする。
-            Editor editor = mPrefs.edit();
-            editor.putBoolean(PrefsKey.ENTERED_ROOM, false);
-            editor.putString(PrefsKey.ROOM_KEY, "");
-            editor.commit();
-
-         // すべて設定されている場合
-        } else {
-            // 入室処理を行う。
-            mRoomKey = roomKey;
-            enterRoom();
-        }
-
         // ユーザデータ、ルームデータを取得する。
         mUserData = (UserData)getArguments().getSerializable(ExtraKey.USER_DATA);
         mRoomData = (RoomData)getArguments().getSerializable(ExtraKey.ROOM_DATA);
@@ -125,9 +91,6 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
 
         // ルームキー入力を取得する。
         mRoomKeyValue = (EditText)rootView.findViewById(R.id.roomKeyValue);
-
-        // 次回入室済みチェックボックスを取得する。
-        mEnteredRoomCheckBox = (CheckBox)rootView.findViewById(R.id.enteredRoomCheckBox);
 
         // 入室ダイアログを生成する。
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -179,8 +142,7 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
         }
 
         // 入室処理を行う。
-        mRoomKey = roomKey;
-        enterRoom();
+        enterRoom(roomKey);
 
         mLogger.d("OUT(OK)");
     }
@@ -188,12 +150,12 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
     /**
      * 入室処理を行う。
      */
-    private void enterRoom() {
+    private void enterRoom(String roomKey) {
         // パラメータを生成する。
         Bundle params = new Bundle();
         params.putString(ParamKey.URL,       Url.ENTER_ROOM);
         params.putString(ParamKey.ROOM_NAME, mRoomData.getName());
-        params.putString(ParamKey.ROOM_KEY,  mRoomKey);
+        params.putString(ParamKey.ROOM_KEY,  roomKey);
         params.putString(ParamKey.USER_ID,   String.valueOf(mUserData.getId()));
         params.putString(ParamKey.USER_NAME, mUserData.getName());
 
@@ -243,19 +205,6 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
 
                 // 登録成功の場合
                 if (status) {
-                    // 次回入室済みがチェックされていない場合
-                    boolean enteredRoom = true;
-                    if (!mEnteredRoomCheckBox.isChecked()) {
-                        // 入室情報をクリアする。
-                        enteredRoom = false;
-                        mRoomKey = "";
-                    }
-                    // 入室情報を保存する。
-                    Editor editor = mPrefs.edit();
-                    editor.putBoolean(PrefsKey.ENTERED_ROOM, enteredRoom);
-                    editor.putString( PrefsKey.ROOM_KEY,     mRoomKey);
-                    editor.commit();
-
                     // マップ画面を表示する。
                     Intent intent = new Intent(getActivity(), MapActivity.class);
                     intent.putExtra(ExtraKey.USER_DATA, mUserData);

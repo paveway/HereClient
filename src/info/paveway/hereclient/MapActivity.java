@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -48,6 +49,8 @@ import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
@@ -167,7 +170,8 @@ public class MapActivity extends AbstractBaseActivity {
         String[] drawerListItems = {
                 getResourceString(R.string.drawer_exit_room),
                 getResourceString(R.string.drawer_settngs),
-                getResourceString(R.string.drawer_item_logout)};
+                getResourceString(R.string.drawer_item_logout),
+                getResourceString(R.string.drawer_settngs)};
         mDrawerList = (ListView)findViewById(R.id.drawerList);
         mDrawerList.setAdapter(
                 new ArrayAdapter<String>(
@@ -230,6 +234,24 @@ public class MapActivity extends AbstractBaseActivity {
         // 追従トグルボタンを取得する。
         mFollowToggleButton = (ToggleButton)findViewById(R.id.followToggleButton);
 
+        // Google Play services利用可否チェック
+        int retCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (retCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(retCode)) {
+                // サービスは利用できない状態だが、ユーザーが対処可能なレベル
+                GooglePlayServicesUtil.getErrorDialog(retCode, this, 1, new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        // 操作がキャンセルされたので、Activity実行中止等の処理
+                    }
+                }).show();
+                // 続きはonActivityResult()で行う
+
+            } else {
+                // ユーザーにはどうしようもない状態なのでActivity実行中止等の処理
+            }
+        }
+
         // マップフラグメントを取得する。
         MapFragment mapFragment = (MapFragment)(getFragmentManager().findFragmentById(R.id.map));
         try {
@@ -245,6 +267,7 @@ public class MapActivity extends AbstractBaseActivity {
                 initMap();
             }
         } catch (Exception e) {
+            // 終了する。
             mLogger.e(e);
             toast(R.string.error_init_map);
             finish();
@@ -265,6 +288,7 @@ public class MapActivity extends AbstractBaseActivity {
 
         // 位置取得サービスを開始する。
         if (!startLocationService()) {
+            // 終了する。
             mLogger.w("OUT(NG)");
             toast(R.string.error_start_location_service);
             finish();

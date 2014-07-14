@@ -26,7 +26,7 @@ public class Logger {
      * デフォルトのタグ名
      * コンストラクタでタグ名の指定を省略した場合に使用されます。
      */
-    private static final String TAG = "HERE_CLIENT";
+    private static final String TAG = "PAVEWAY";
 
     /** 例外発生時のメッセージ */
     private static final String EXCEPTION_MESSAGE = "Exception";

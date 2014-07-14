@@ -31,6 +31,9 @@ public class LocationService extends Service {
     /** ロガー */
     private Logger mLogger = new Logger(LocationService.class);
 
+    /** 更新間隔デフォルト値(秒) */
+    private static final long DEFAULT_INTERVAL = 30;
+
     /** ミリ秒 */
     private static final long MILLI_SEC = 1000;
 
@@ -68,11 +71,11 @@ public class LocationService extends Service {
 
         // ロケーションリクエストを生成する。
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        long interval = prefs.getLong(PrefsKey.INTERVAL_LIST, 30);
+        long interval = prefs.getLong(PrefsKey.INTERVAL_LIST, DEFAULT_INTERVAL);
         mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
         mLocationRequest.setInterval(interval * MILLI_SEC);
-        mLocationRequest.setFastestInterval(30 * 1000);
+        mLocationRequest.setFastestInterval(DEFAULT_INTERVAL * MILLI_SEC);
 
         // ロケーションリスナーを生成する。
         mLocationListener = new UserLocationListener();

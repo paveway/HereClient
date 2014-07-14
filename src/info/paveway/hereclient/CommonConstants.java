@@ -25,27 +25,6 @@ public class CommonConstants {
 
         /** 更新間隔リスト */
         public static final String INTERVAL_LIST = "intervalList";
-
-        /** ログイン済みフラグ */
-        public static final String LOGGED = "logged";
-
-        /** 入室済みフラグ */
-        public static final String ENTERED_ROOM = "enteredRoom";
-
-        /** ログアウトフラグ */
-        public static final String LOGOUT = "logout";
-
-        /** 退室フラグ */
-        public static final String EXIT_ROOM = "exitRoom";
-
-        /** ユーザ名 */
-        public static final String USER_NAME = "userName";
-
-        /** パスワード */
-        public static final String USER_PASSWORD = "userPassword";
-
-        /** ルームキー */
-        public static final String ROOM_KEY = "roomKey";
     }
 
     /**

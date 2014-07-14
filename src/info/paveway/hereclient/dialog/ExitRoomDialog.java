@@ -68,6 +68,7 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mLogger.d("IN");
 
+        // ユーザデータ、ルームデータを取得する。
         mUserData = (UserData)getArguments().getSerializable(ExtraKey.USER_DATA);
         mRoomData = (RoomData)getArguments().getSerializable(ExtraKey.ROOM_DATA);
 

@@ -3,7 +3,6 @@ package info.paveway.hereclient.dialog;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
-import info.paveway.hereclient.CommonConstants.PrefsKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.RoomListActivity;
@@ -22,15 +21,11 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.CheckBox;
 import android.widget.EditText;
 
 /**
@@ -48,23 +43,11 @@ public class LoginDialog extends AbstractBaseDialogFragment {
     /** ハンドラー */
     private Handler mHandler = new Handler();
 
-    /** プリフェレンス */
-    private SharedPreferences mPrefs;
-
     /** ユーザ名入力 */
     private EditText mUserNameValue;
 
     /** パスワード入力 */
     private EditText mPasswordValue;
-
-    /** ログイン済みチェックボックス */
-    private CheckBox mLoggedCheckBox;
-
-    /** ユーザ名 */
-    private String mUserName;
-
-    /** パスワード */
-    private String mUserPassword;
 
     /**
      * インスタンスを返却する。
@@ -87,36 +70,12 @@ public class LoginDialog extends AbstractBaseDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mLogger.d("IN");
 
-        // 設定値を取得する。
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        boolean logged = mPrefs.getBoolean(PrefsKey.LOGGED, false);
-        String userName = mPrefs.getString(PrefsKey.USER_NAME, "");
-        String userPassword = mPrefs.getString(PrefsKey.USER_PASSWORD, "");
-
-        // ログイン済みフラグ、ユーザ名、ユーザパスワードがいずれかが未設定の場合
-        if (!logged || StringUtil.isNullOrEmpty(userName) || StringUtil.isNullOrEmpty(userPassword)) {
-            // 設定値をクリアする。
-            Editor editor = mPrefs.edit();
-            editor.putBoolean(PrefsKey.LOGGED, false);
-            editor.putString(PrefsKey.USER_NAME, "");
-            editor.putString(PrefsKey.USER_PASSWORD, "");
-            editor.commit();
-
-        // すべて設定されている場合
-        } else {
-            // ログイン処理を行う。
-            mUserName     = userName;
-            mUserPassword = userPassword;
-            login();
-        }
-
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View rootView = inflater.inflate(R.layout.dialog_login, null);
 
         // 入力項目を取得する。
         mUserNameValue  = (EditText)rootView.findViewById(R.id.userNameValue);
         mPasswordValue  = (EditText)rootView.findViewById(R.id.passwordValue);
-        mLoggedCheckBox = (CheckBox)rootView.findViewById(R.id.loggedCheckBox);
 
         // ログインダイアログを生成する。
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -181,9 +140,7 @@ public class LoginDialog extends AbstractBaseDialogFragment {
         }
 
         // ログイン処理を行う。
-        mUserName = userName;
-        mUserPassword = userPassword;
-        login();
+        login(userName, userPassword);
 
         mLogger.d("OUT(OK)");
     }
@@ -191,15 +148,15 @@ public class LoginDialog extends AbstractBaseDialogFragment {
     /**
      * ログイン処理を行う。
      */
-    private void login() {
+    private void login(String userName, String userPassword) {
         mLogger.d("IN");
 
         // ログイン処理を行う。
         // パラメータを生成する。
         Bundle params = new Bundle();
         params.putString(ParamKey.URL,           Url.LOGIN);
-        params.putString(ParamKey.USER_NAME,     mUserName);
-        params.putString(ParamKey.USER_PASSWORD, mUserPassword);
+        params.putString(ParamKey.USER_NAME,     userName);
+        params.putString(ParamKey.USER_PASSWORD, userPassword);
 
         // ログインローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
@@ -277,10 +234,6 @@ public class LoginDialog extends AbstractBaseDialogFragment {
         public void onReceive(String response, Bundle bundle) {
             mLogger.d("IN response=[" + response + "]");
 
-            // ユーザ名とパスワードをクリアする。
-            mUserName = "";
-            mUserPassword = "";
-
             try {
                 JSONObject json = new JSONObject(response);
 
@@ -289,21 +242,6 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
                 // ログイン成功の場合
                 if (status) {
-                    // 次回ログイン済みがチェックされていない場合
-                    boolean logged = true;
-                    if (!mLoggedCheckBox.isChecked()) {
-                        // ログイン情報をクリアする。
-                        logged = false;
-                        mUserName = "";
-                        mUserPassword = "";
-                    }
-                    // ログイン情報を保存する。
-                    Editor editor = mPrefs.edit();
-                    editor.putBoolean(PrefsKey.LOGGED,       logged);
-                    editor.putString(PrefsKey.USER_NAME,     mUserName);
-                    editor.putString(PrefsKey.USER_PASSWORD, mUserPassword);
-                    editor.commit();
-
                     // ユーザデータを生成する。
                     UserData userData = new UserData();
                     userData.setId(        json.getLong(  ParamKey.USER_ID));
@@ -369,16 +307,6 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
                 // 登録成功の場合
                 if (status) {
-                    // 次回ログイン済みがチェックされている場合
-                    if (mLoggedCheckBox.isChecked()) {
-                        // ログイン情報を保存する。
-                        Editor editor = mPrefs.edit();
-                        editor.putBoolean(PrefsKey.LOGGED,        true);
-                        editor.putString( PrefsKey.USER_NAME,     mUserName);
-                        editor.putString( PrefsKey.USER_PASSWORD, mUserPassword);
-                        editor.commit();
-                    }
-
                     // ユーザデータを生成する。
                     UserData userData = new UserData();
 

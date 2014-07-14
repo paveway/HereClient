@@ -3,21 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <PreferenceCategory
-        android:title="@string/category_action_title">
-
-        <CheckBoxPreference
-            android:key="logout"
-            android:title="@string/logged_check_box_title"
-            android:summary="@string/logged_check_box_summary"/>
-
-        <CheckBoxPreference
-            android:key="exitRoom"
-            android:title="@string/entered_room_check_box_title"
-            android:summary="@string/entered_room_check_box_summary"/>
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
         android:title="@string/category_init_title">
 
     </PreferenceCategory>

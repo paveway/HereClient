@@ -8,6 +8,12 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 
+/**
+ * サービスユーティリティクラス
+ *
+ * @version 1.0 新規作成
+ *
+ */
 public class ServiceUtil {
 
     /** ロガー */

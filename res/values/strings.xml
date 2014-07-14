@@ -60,7 +60,6 @@
 
     <!-- 入室ダイアログ -->
     <string name="dialog_enter_room_title">入室</string>
-    <string name="dialog_entered_room_check_box">次回入室済みとする</string>
 
     <!-- 退室ダイアログ -->
     <string name="dialog_exit_room_title">退室</string>
@@ -68,7 +67,6 @@
 
     <!-- ログインダイアログ -->
     <string name="dialog_login_title">ようこそ</string>
-    <string name="dialog_logined_check_box">次回ログイン済みとする</string>
 
     <!-- ログアウトダイアログ -->
     <string name="dialog_logout_title">ダイアログ</string>
@@ -87,13 +85,6 @@
     <string name="activity_map_follow_toggle_button_off">追従OFF</string>
 
     <!-- 設定画面 -->
-    <string name="category_action_title">動作</string>
-
-    <string name="logged_check_box_title">ログイン済み</string>
-    <string name="logged_check_box_summary">ログイン済みを設定/解除します</string>
-    <string name="entered_room_check_box_title">入室済み</string>
-    <string name="entered_room_check_box_summary">入室済みを設定/解除します</string>
-
     <string name="category_init_title">初期値</string>
 
     <string name="interval_list_title">更新間隔</string>

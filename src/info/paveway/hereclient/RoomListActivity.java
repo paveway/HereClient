@@ -3,7 +3,6 @@ package info.paveway.hereclient;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
-import info.paveway.hereclient.CommonConstants.PrefsKey;
 import info.paveway.hereclient.CommonConstants.RequestCode;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.data.RoomData;
@@ -26,12 +25,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -362,49 +358,6 @@ public class RoomListActivity extends AbstractBaseActivity {
         LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
         looutDialog.setCancelable(false);
         looutDialog.show(manager, LogoutDialog.class.getSimpleName());
-    }
-
-    /**
-     * 他の画面の呼び出しから戻ってきた時に呼び出される。
-     *
-     * @param requestCode 要求コード
-     * @param resultCode 結果コード
-     * @param data データ
-     */
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // 設定画面の場合
-        if (RequestCode.SETTINGS == requestCode) {
-            // プリフェレンスを取得する。
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(RoomListActivity.this);
-
-            // ログイン済みとログアウト設定を取得する。
-            boolean logged = prefs.getBoolean(PrefsKey.LOGGED, false);
-            boolean logout = prefs.getBoolean(PrefsKey.LOGOUT, false);
-
-            // ログイン済みかつログアウトする場合
-            if (logged && logout) {
-                // ログイン済み設定値をクリアする。
-                Editor editor = prefs.edit();
-                editor.putBoolean(PrefsKey.LOGGED,        false);
-                editor.putString( PrefsKey.USER_NAME,     "");
-                editor.putString( PrefsKey.USER_PASSWORD, "");
-                editor.commit();
-            }
-
-            // 入室済みと退出設定を取得する。
-            boolean enteredRoom = prefs.getBoolean(PrefsKey.ENTERED_ROOM, false);
-            boolean exitRoom = prefs.getBoolean(PrefsKey.EXIT_ROOM, false);
-
-            // 入室済みかつ退出する場合
-            if (enteredRoom && exitRoom) {
-                // 入室済み設定値をクリアする。
-                Editor editor = prefs.edit();
-                editor.putBoolean(PrefsKey.ENTERED_ROOM, false);
-                editor.putString( PrefsKey.ROOM_KEY,     "");
-                editor.commit();
-            }
-        }
     }
 
     /**
