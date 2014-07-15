@@ -13,10 +13,9 @@ import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -87,6 +86,7 @@ public class EditMemoDialog extends AbstractBaseDialogFragment {
      * @param savedInstanceState 保存した時のインスタンスの状態
      * @return ダイアログ
      */
+    @SuppressLint("InflateParams")
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mLogger.d("IN");

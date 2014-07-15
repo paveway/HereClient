@@ -11,6 +11,7 @@ import info.paveway.hereclient.loader.HttpLoaderCallbacks;
 import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -62,6 +63,7 @@ public class CreateRoomDialog extends AbstractBaseDialogFragment {
      * @param savedInstanceState 保存した時のインスタンスの状態
      * @return ダイアログ
      */
+    @SuppressLint("InflateParams")
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         mLogger.d("IN");
