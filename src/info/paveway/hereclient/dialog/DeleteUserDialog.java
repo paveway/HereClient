@@ -6,7 +6,8 @@ import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 
@@ -97,6 +98,7 @@ public class DeleteUserDialog extends AbstractBaseDialogFragment {
     /**
      * 削除ボタンの処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doDeleteButton() {
         mLogger.d("IN");
 
@@ -109,8 +111,8 @@ public class DeleteUserDialog extends AbstractBaseDialogFragment {
 
         // ユーザ削除ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.DELETE_USER, params, new HttpPostLoaderCallbacks(
-                        getActivity(), new DeleteUserOnReceiveResponseListener()));
+                LoaderId.DELETE_USER, params, new HttpLoaderCallbacks(
+                        getActivity(), new DeleteUserOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }

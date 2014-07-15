@@ -7,7 +7,8 @@ import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 
@@ -109,6 +110,7 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
     /**
      * 退室ボタンの処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doExitRoomButton() {
         mLogger.d("IN");
 
@@ -123,8 +125,8 @@ public class ExitRoomDialog extends AbstractBaseDialogFragment {
 
         // 退室ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.EXIT_ROOM, params, new HttpPostLoaderCallbacks(
-                        getActivity(), new ExitRoomOnReceiveResponseListener()));
+                LoaderId.EXIT_ROOM, params, new HttpLoaderCallbacks(
+                        getActivity(), new ExitRoomOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }

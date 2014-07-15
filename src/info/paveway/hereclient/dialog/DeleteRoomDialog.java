@@ -8,7 +8,8 @@ import info.paveway.hereclient.R;
 import info.paveway.hereclient.RoomListActivity;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.log.Logger;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -103,6 +104,7 @@ public class DeleteRoomDialog extends AbstractBaseDialogFragment {
     /**
      * 削除ボタンの処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doDeleteButton() {
         mLogger.d("IN");
 
@@ -117,8 +119,8 @@ public class DeleteRoomDialog extends AbstractBaseDialogFragment {
 
         // ルーム削除ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.DELETE_USER, params, new HttpPostLoaderCallbacks(
-                        getActivity(), ((RoomListActivity)getActivity()).new DeleteRoomOnReceiveResponseListener()));
+                LoaderId.DELETE_USER, params, new HttpLoaderCallbacks(
+                        getActivity(), ((RoomListActivity)getActivity()).new DeleteRoomOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }

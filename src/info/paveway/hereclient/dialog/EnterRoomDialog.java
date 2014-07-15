@@ -8,12 +8,15 @@ import info.paveway.hereclient.MapActivity;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -150,6 +153,7 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
     /**
      * 入室処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void enterRoom(String roomKey) {
         // パラメータを生成する。
         Bundle params = new Bundle();
@@ -161,8 +165,8 @@ public class EnterRoomDialog extends AbstractBaseDialogFragment {
 
         // 入室ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.ENTER_ROOM, params, new HttpPostLoaderCallbacks(
-                        getActivity(), new EnterRoomOnReceiveResponseListener()));
+                LoaderId.ENTER_ROOM, params, new HttpLoaderCallbacks(
+                        getActivity(), new EnterRoomOnReceiveResponseListener(), HttpPostLoader.class));
     }
 
     /**

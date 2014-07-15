@@ -7,7 +7,8 @@ import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.RoomListActivity;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
@@ -148,6 +149,7 @@ public class LoginDialog extends AbstractBaseDialogFragment {
     /**
      * ログイン処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void login(String userName, String userPassword) {
         mLogger.d("IN");
 
@@ -160,8 +162,8 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
         // ログインローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.LOGIN, params, new HttpPostLoaderCallbacks(
-                        getActivity(), new LoginOnReceiveResponseListener()));
+                LoaderId.LOGIN, params, new HttpLoaderCallbacks(
+                        getActivity(), new LoginOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }
@@ -169,6 +171,7 @@ public class LoginDialog extends AbstractBaseDialogFragment {
     /**
      * ユーザ登録ボタンの処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doRegistUserButton() {
         mLogger.d("IN");
 
@@ -193,8 +196,8 @@ public class LoginDialog extends AbstractBaseDialogFragment {
 
         // ユーザ登録ローダーを表示する。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.REGIST_USER, params, new HttpPostLoaderCallbacks(
-                        getActivity(), new RegistUserOnReceiveResponseListener()));
+                LoaderId.REGIST_USER, params, new HttpLoaderCallbacks(
+                        getActivity(), new RegistUserOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }

@@ -3,7 +3,6 @@ package info.paveway.hereclient;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.LoaderId;
 import info.paveway.hereclient.CommonConstants.ParamKey;
-import info.paveway.hereclient.CommonConstants.RequestCode;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
@@ -13,7 +12,8 @@ import info.paveway.hereclient.dialog.DeleteUserDialog;
 import info.paveway.hereclient.dialog.EnterRoomDialog;
 import info.paveway.hereclient.dialog.InfoDialog;
 import info.paveway.hereclient.dialog.LogoutDialog;
-import info.paveway.hereclient.loader.HttpGetLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpGetLoader;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 
@@ -130,9 +130,7 @@ public class RoomListActivity extends AbstractBaseActivity {
                 getResourceString(R.string.drawer_item_create_room),
                 getResourceString(R.string.drawer_item_update_room_list),
                 getResourceString(R.string.drawer_item_logout),
-                getResourceString(R.string.drawer_item_delete_user),
-                getResourceString(R.string.drawer_settngs),
-                getResourceString(R.string.menu_info)};
+                getResourceString(R.string.drawer_item_delete_user)};
         mDrawerList = (ListView)findViewById(R.id.drawerList);
         mDrawerList.setAdapter(
                 new ArrayAdapter<String>(
@@ -174,23 +172,6 @@ public class RoomListActivity extends AbstractBaseActivity {
                     DeleteUserDialog deleteUserDialog = DeleteUserDialog.newInstance(mUserData);
                     deleteUserDialog.setCancelable(false);
                     deleteUserDialog.show(manager, DeleteUserDialog.class.getSimpleName());
-                    break;
-                }
-
-                // 設定の場合
-                case 4: {
-                    // 設定画面を表示する。
-                    Intent intent = new Intent(RoomListActivity.this, SettingsPreferenceActivity.class);
-                    startActivityForResult(intent, RequestCode.SETTINGS);
-                    break;
-                }
-
-                // バージョン情報の場合
-                case 5: {
-                    // バージョン情報ダイアログを表示する。
-                    FragmentManager manager = getSupportFragmentManager();
-                    InfoDialog infoDialog = InfoDialog.newInstance();
-                    infoDialog.show(manager, InfoDialog.class.getSimpleName());
                     break;
                 }
                 }
@@ -299,41 +280,12 @@ public class RoomListActivity extends AbstractBaseActivity {
         }
 
         switch (item.getItemId()) {
-        // 新規ルームの場合
-        case R.id.menu_create_room: {
-            // 新規ルームダイアログを表示する。
-            FragmentManager manager = getSupportFragmentManager();
-            mCreateRoomDialog = CreateRoomDialog.newInstance(mUserData);
-            mCreateRoomDialog.show(manager, CreateRoomDialog.class.getSimpleName());
-            return true;
-        }
-
-        // 更新の場合
-        case R.id.menu_update_room_list: {
-            // ルームデータリストを取得する。
-            getRoomDataList();
-            return true;
-        }
-
-        // ログアウトの場合
-        case R.id.menu_logout: {
-            // ログアウトダイアログを表示する。
-            FragmentManager manager = getSupportFragmentManager();
-            LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
-            looutDialog.setCancelable(false);
-            looutDialog.show(manager, LogoutDialog.class.getSimpleName());
-            return true;
-        }
-
-        // ユーザ削除の場合
-        case R.id.menu_delete_user: {
-            // ユーザ削除ダイアログを表示する。
-            FragmentManager manager = getSupportFragmentManager();
-            DeleteUserDialog deleteUserDialog = DeleteUserDialog.newInstance(mUserData);
-            deleteUserDialog.setCancelable(false);
-            deleteUserDialog.show(manager, DeleteUserDialog.class.getSimpleName());
-            return true;
-        }
+        // 設定の場合
+        case R.id.menu_settings:
+            // 設定画面を表示する。
+            Intent intent = new Intent(RoomListActivity.this, SettingsPreferenceActivity.class);
+            startActivity(intent);
+            break;
 
         // バージョン情報の場合
         case R.id.menu_info:
@@ -373,6 +325,7 @@ public class RoomListActivity extends AbstractBaseActivity {
     /**
      * ルームデータリストを取得する。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void getRoomDataList() {
         mLogger.d("IN");
 
@@ -382,8 +335,8 @@ public class RoomListActivity extends AbstractBaseActivity {
 
         // ルームリストローダーをロードする。
         getSupportLoaderManager().restartLoader(
-                LoaderId.ROOM_LIST, params, new HttpGetLoaderCallbacks(
-                        RoomListActivity.this, new RoomListOnReceiveResponseListener()));
+                LoaderId.ROOM_LIST, params, new HttpLoaderCallbacks(
+                        RoomListActivity.this, new RoomListOnReceiveResponseListener(), HttpGetLoader.class));
 
         mLogger.d("OUT(OK)");
     }

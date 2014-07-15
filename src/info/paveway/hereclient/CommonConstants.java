@@ -224,6 +224,9 @@ public class CommonConstants {
 
         /** メモ経度 */
         public static final String MEMO_LONGITUDE = "memoLongitude";
+
+        /** 更新間隔 */
+        public static final String INTERVAL = "interval";
     }
 
     /**
@@ -257,6 +260,9 @@ public class CommonConstants {
 
         /** 位置情報取得エラー */
         public static final String ACTION_LOCATION_FAILED = "info.paveway.hereclient.ACTION_LOCATION_FAILED";
+
+        /** 設定 */
+        public static final String ACTION_SETTINGS = "info.paveway.heraclient.ACTION_SETTINGS";
     }
 
     /**
@@ -273,4 +279,10 @@ public class CommonConstants {
         /** 全員 */
         public static final int ALL = 3;
     }
+
+    /** 更新間隔デフォルト値(30秒) */
+    public  static final long DEFAULT_INTERVAL = 30;
+
+    /** ミリ秒 */
+    public static final long MILLI_SEC = 1000;
 }

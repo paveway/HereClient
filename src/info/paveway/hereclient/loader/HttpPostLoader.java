@@ -53,7 +53,6 @@ public class HttpPostLoader extends AbstractBaseLoader {
      */
     @Override
     protected String execute(HttpClient httpClient) throws ClientProtocolException, IOException {
-        // HTTP POSTパラメータを設定する。
         List<NameValuePair> entities = setEntities();
 
         // HTTP POSTメソッドを生成する。

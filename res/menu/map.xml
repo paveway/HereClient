@@ -4,18 +4,13 @@
     tools:context="info.paveway.hereclient.MainActivity" >
 
     <item
-        android:id="@+id/menu_exit_room"
-        android:title="@string/menu_exit_room"
-        app:showAsAction="never"/>
-
-    <item
         android:id="@+id/menu_settings"
         android:title="@string/menu_settings"
         app:showAsAction="never"/>
 
     <item
-        android:id="@+id/menu_logout"
-        android:title="@string/menu_logout"
+        android:id="@+id/menu_info"
+        android:title="@string/menu_info"
         app:showAsAction="never"/>
 
 </menu>

@@ -7,7 +7,8 @@ import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.RoomListActivity;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
 import android.app.AlertDialog;
@@ -110,6 +111,7 @@ public class CreateRoomDialog extends AbstractBaseDialogFragment {
     /**
      * 作成ボタンの処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doCreateRoomButton() {
         mLogger.d("IN");
 
@@ -133,8 +135,8 @@ public class CreateRoomDialog extends AbstractBaseDialogFragment {
 
         // ルーム作成ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.NEW_ROOM, params, new HttpPostLoaderCallbacks(
-                        getActivity(), ((RoomListActivity)getActivity()).new CreateRoomOnReceiveResponseListener()));
+                LoaderId.NEW_ROOM, params, new HttpLoaderCallbacks(
+                        getActivity(), ((RoomListActivity)getActivity()).new CreateRoomOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }

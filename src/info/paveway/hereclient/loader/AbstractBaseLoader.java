@@ -1,8 +1,8 @@
 package info.paveway.hereclient.loader;
 
-import info.paveway.log.Logger;
-
 import java.io.IOException;
+
+import info.paveway.log.Logger;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -12,12 +12,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.content.AsyncTaskLoader;
 
-/**
- * 基底ローダー抽象クラス
- *
- * @version 1.0 新規作成
- *
- */
 public abstract class AbstractBaseLoader extends AsyncTaskLoader<String> {
 
     /** ロガー */
@@ -25,7 +19,6 @@ public abstract class AbstractBaseLoader extends AsyncTaskLoader<String> {
 
     /** エンコーディング定数 */
     public class Encoding {
-        /** UTF-8 */
         public static final String UTF_8 = "UTF-8";
     }
 
@@ -46,10 +39,7 @@ public abstract class AbstractBaseLoader extends AsyncTaskLoader<String> {
      * @param params パラメータ
      */
     public AbstractBaseLoader(Context context, Bundle params) {
-        // スーパークラスのコンストラクタを呼び出す。
         super(context);
-
-        // パラメータを保存する。
         mParams = params;
     }
 
@@ -68,13 +58,11 @@ public abstract class AbstractBaseLoader extends AsyncTaskLoader<String> {
         // HTTPクライアントを生成する。
         HttpClient httpClient = new DefaultHttpClient();
         try {
-            // HTTP通信を行う。
             result = execute(httpClient);
         } catch (Exception e) {
             mLogger.e(e);
 
         } finally {
-            // HTTPクライアントを終了する。
             httpClient.getConnectionManager().shutdown();
         }
 

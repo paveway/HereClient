@@ -10,8 +10,10 @@ import info.paveway.hereclient.data.LocationData;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
 import info.paveway.hereclient.dialog.ExitRoomDialog;
+import info.paveway.hereclient.dialog.InfoDialog;
 import info.paveway.hereclient.dialog.LogoutDialog;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.hereclient.service.LocationService;
 import info.paveway.log.Logger;
@@ -75,7 +77,7 @@ public class MapActivity extends AbstractBaseActivity {
     private Logger mLogger = new Logger(MapActivity.class);
 
     /** プリフェレンス */
-    SharedPreferences mPrefs;
+    private SharedPreferences mPrefs;
 
     /** 位置ブロードキャストレシーバー */
     private LocationBroadcastReceiver mLocationReceiver;
@@ -169,9 +171,7 @@ public class MapActivity extends AbstractBaseActivity {
         // ドロワーリストアイテムを設定する。
         String[] drawerListItems = {
                 getResourceString(R.string.drawer_exit_room),
-                getResourceString(R.string.drawer_settngs),
-                getResourceString(R.string.drawer_item_logout),
-                getResourceString(R.string.drawer_settngs)};
+                getResourceString(R.string.drawer_item_logout)};
         mDrawerList = (ListView)findViewById(R.id.drawerList);
         mDrawerList.setAdapter(
                 new ArrayAdapter<String>(
@@ -187,14 +187,6 @@ public class MapActivity extends AbstractBaseActivity {
                     ExitRoomDialog dialog = ExitRoomDialog.newInstance(mUserData, mRoomData);
                     dialog.setCancelable(false);
                     dialog.show(manager, ExitRoomDialog.class.getSimpleName());
-                    break;
-                }
-
-                // 設定の場合
-                case 1: {
-                    // 設定画面を表示する。
-                    Intent intent = new Intent(MapActivity.this, SettingsPreferenceActivity.class);
-                    startActivity(intent);
                     break;
                 }
 
@@ -387,36 +379,21 @@ public class MapActivity extends AbstractBaseActivity {
         }
 
         switch (item.getItemId()) {
-        // 退室ルームの場合
-        case R.id.menu_exit_room: {
-            // 退室ダイアログを表示する。
-            FragmentManager manager = getSupportFragmentManager();
-            ExitRoomDialog dialog = ExitRoomDialog.newInstance(mUserData, mRoomData);
-            dialog.setCancelable(false);
-            dialog.show(manager, ExitRoomDialog.class.getSimpleName());
-            mLogger.d("OUT(OK)");
-            return true;
-        }
-
         // 設定の場合
-        case R.id.menu_settings: {
+        case R.id.menu_settings:
             // 設定画面を表示する。
             Intent intent = new Intent(MapActivity.this, SettingsPreferenceActivity.class);
             startActivity(intent);
             mLogger.d("OUT(OK)");
             return true;
-        }
 
-        // ログアウトの場合
-        case R.id.menu_logout: {
-            // ログアウトダイアログを表示する。
+        // バージョン情報の場合
+        case R.id.menu_info:
+            // バージョン情報ダイアログを表示する。
             FragmentManager manager = getSupportFragmentManager();
-            LogoutDialog looutDialog = LogoutDialog.newInstance(mUserData);
-            looutDialog.setCancelable(false);
-            looutDialog.show(manager, LogoutDialog.class.getSimpleName());
-            mLogger.d("OUT(OK)");
+            InfoDialog infoDialog = InfoDialog.newInstance();
+            infoDialog.show(manager, InfoDialog.class.getSimpleName());
             return true;
-        }
         }
 
         mLogger.d("OUT(OK)");
@@ -557,6 +534,7 @@ public class MapActivity extends AbstractBaseActivity {
          * @param context コンテキスト
          * @param intent インテント
          */
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public void onReceive(Context context, Intent intent) {
             mLogger.d("IN");
@@ -634,8 +612,8 @@ public class MapActivity extends AbstractBaseActivity {
             getSupportLoaderManager().restartLoader(
                     LoaderId.SEND_LOCATION,
                     bundle,
-                    new HttpPostLoaderCallbacks(
-                        MapActivity.this, new SendLocationOnReceiveResponseListener()));
+                    new HttpLoaderCallbacks(
+                        MapActivity.this, new SendLocationOnReceiveResponseListener(), HttpPostLoader.class));
 
             mLogger.d("OUT(OK)");
         }

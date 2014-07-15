@@ -1,12 +1,10 @@
 package info.paveway.hereclient.loader;
 
-import info.paveway.log.Logger;
-
 import java.lang.reflect.Constructor;
 
+import info.paveway.log.Logger;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 
 /**
@@ -15,26 +13,23 @@ import android.support.v4.content.Loader;
  * @version 1.0 新規作成
  *
  */
-public class HttpLoaderCallbacks extends AbstractBaseLoaderCallbacks {
+public class HttpLoaderCallbacks<T> extends AbstractBaseLoaderCallbacks {
 
     /** ロガー */
     private Logger mLogger = new Logger(HttpLoaderCallbacks.class);
 
     /** ローダークラス */
-    private Class<? extends AsyncTaskLoader<String>> mLoaderClass;
+    private Class<T> mLoaderClass;
 
     /**
      * コンストラクタ
      *
      * @param context コンテキスト
      * @param listener レスポンス受信リスナー
-     * @param loaderClass ローダークラス
      */
-    public HttpLoaderCallbacks(Context context, OnReceiveResponseListener listener, Class<? extends AsyncTaskLoader<String>> loaderClass) {
-        // スーパークラスのメソッドを呼び出す。
+    public HttpLoaderCallbacks(Context context, OnReceiveResponseListener listener, Class<T> loaderClass) {
         super(context, listener);
 
-        // ローダークラスを保存する。
         mLoaderClass = loaderClass;
 
         mLogger.d("IN");

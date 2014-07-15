@@ -1,11 +1,16 @@
 package info.paveway.hereclient.service;
 
+import info.paveway.hereclient.CommonConstants;
 import info.paveway.hereclient.CommonConstants.Action;
 import info.paveway.hereclient.CommonConstants.ExtraKey;
 import info.paveway.hereclient.CommonConstants.PrefsKey;
 import info.paveway.log.Logger;
+import info.paveway.util.StringUtil;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
@@ -31,11 +36,8 @@ public class LocationService extends Service {
     /** ロガー */
     private Logger mLogger = new Logger(LocationService.class);
 
-    /** 更新間隔デフォルト値(秒) */
-    private static final long DEFAULT_INTERVAL = 30;
-
-    /** ミリ秒 */
-    private static final long MILLI_SEC = 1000;
+    /** プリフェレンス */
+    private SharedPreferences mPrefs;
 
     /** ロケーションクライアント */
     private LocationClient mLocationClient;
@@ -45,6 +47,9 @@ public class LocationService extends Service {
 
     /** ロケーションリスナー */
     private LocationListener mLocationListener;
+
+    /** 設定ブロードキャストレシーバー */
+    private SettingsBroadcastReceiver mSettingsReceiver;
 
     /**
      * バインドした時に呼び出される。
@@ -69,13 +74,20 @@ public class LocationService extends Service {
     public void onCreate() {
         mLogger.d("IN");
 
+        // プリフェレンスを取得する。
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(LocationService.this);
+
         // ロケーションリクエストを生成する。
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        long interval = prefs.getLong(PrefsKey.INTERVAL_LIST, DEFAULT_INTERVAL);
+        long interval = CommonConstants.DEFAULT_INTERVAL;
+        String intervalStr = prefs.getString(PrefsKey.INTERVAL_LIST, String.valueOf(interval));
+        if (StringUtil.isNotNullOrEmpty(intervalStr)) {
+            interval = Long.parseLong(intervalStr);
+        }
         mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
-        mLocationRequest.setInterval(interval * MILLI_SEC);
-        mLocationRequest.setFastestInterval(DEFAULT_INTERVAL * MILLI_SEC);
+        mLocationRequest.setInterval(interval * CommonConstants.MILLI_SEC);
+        mLocationRequest.setFastestInterval(CommonConstants.DEFAULT_INTERVAL * CommonConstants.MILLI_SEC);
 
         // ロケーションリスナーを生成する。
         mLocationListener = new UserLocationListener();
@@ -89,6 +101,31 @@ public class LocationService extends Service {
 
         // 接続する。
         mLocationClient.connect();
+
+        // 設定ブロードキャストレシーバーを登録する。
+        mSettingsReceiver = new SettingsBroadcastReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Action.ACTION_SETTINGS);
+        registerReceiver(mSettingsReceiver, filter);
+
+        mLogger.d("OUT(OK)");
+    }
+
+    /**
+     * 終了する時に呼び出される。
+     */
+    @Override
+    public void onDestroy() {
+        mLogger.d("IN");
+
+        // 設定ブロードキャストレシーバーが有効な場合
+        if (null != mSettingsReceiver) {
+            // 登録を解除する。
+            unregisterReceiver(mSettingsReceiver);
+        }
+
+        // スーパークラスのメソッドを呼び出す。
+        super.onDestroy();
 
         mLogger.d("OUT(OK)");
     }
@@ -226,6 +263,50 @@ public class LocationService extends Service {
             sendBroadcast(intent);
 
             mLogger.i("OUT(OK)");
+        }
+    }
+
+    /**************************************************************************/
+    /**
+     * 設定ブロードキャストレシーバー
+     *
+     */
+    public class SettingsBroadcastReceiver extends BroadcastReceiver {
+
+        /** ロガー */
+        private Logger mLogger = new Logger(SettingsBroadcastReceiver.class);
+
+        /**
+         * ブロードキャストを受信した時に呼び出される。
+         *
+         * @param context コンテキスト
+         * @param intent インテント
+         */
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mLogger.d("IN");
+
+            // インテントが取得できない場合
+            if (null == intent) {
+                // 終了する。
+                mLogger.w("OUT(NG)");
+                return;
+            }
+
+            // 更新間隔を取得する。
+            long interval = CommonConstants.DEFAULT_INTERVAL;
+            String intervalStr = mPrefs.getString(PrefsKey.INTERVAL_LIST, String.valueOf(interval));
+            if (StringUtil.isNotNullOrEmpty(intervalStr)) {
+                interval = Long.parseLong(intervalStr);
+            }
+
+            // 現在の設定と異なる場合
+            if (mLocationRequest.getInterval() != interval) {
+                // 更新間隔を設定する。
+                mLocationRequest.setInterval(interval);
+            }
+
+            mLogger.d("OUT(OK)");
         }
     }
 }

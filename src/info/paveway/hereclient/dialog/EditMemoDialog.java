@@ -8,7 +8,8 @@ import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.RoomData;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 import info.paveway.util.StringUtil;
@@ -138,6 +139,7 @@ public class EditMemoDialog extends AbstractBaseDialogFragment {
     /**
      * 作成ボタンの処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doCreateMemoButton() {
         mLogger.d("IN");
 
@@ -181,8 +183,8 @@ public class EditMemoDialog extends AbstractBaseDialogFragment {
 
         // メモ編集ローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.EDIT_MEMO, params, new HttpPostLoaderCallbacks(
-                        getActivity(), new EditMemoOnReceiveResponseListener()));
+                LoaderId.EDIT_MEMO, params, new HttpLoaderCallbacks(
+                        getActivity(), new EditMemoOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }

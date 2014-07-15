@@ -81,11 +81,7 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
 
         mLoaderId = loaderId;
         mBundle = bundle;
-
-        // ローダーを生成する。
         Loader<String> loader = createLoader(bundle);
-
-        // ローダーを強制ロードする。
         loader.forceLoad();
 
         mLogger.i("OUT(OK)");
@@ -139,7 +135,20 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
     public void onLoaderReset(Loader<String> loader) {
         mLogger.i("IN");
 
-        // 何もしない。
+        // 処理状態表示ダイアログを表示する場合
+        if (isShowProgressStatusDialog()) {
+            // 処理中ダイアログを閉じる。　
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    // 処理中ダイアログが有効な場合
+                    if (null != mProgressDialog) {
+                        mProgressDialog.dismiss();
+                        mProgressDialog = null;
+                    }
+                }
+            });
+        }
 
         mLogger.i("OUT(OK)");
     }
@@ -150,7 +159,6 @@ public abstract class AbstractBaseLoaderCallbacks implements LoaderCallbacks<Str
      * @return 判定結果 true:表示する / false:表示しない
      */
     protected boolean isShowProgressStatusDialog() {
-        // コンテキストがActionBarActivityの派生クラスの場合、表示する。
         return (mContext instanceof ActionBarActivity);
     }
 

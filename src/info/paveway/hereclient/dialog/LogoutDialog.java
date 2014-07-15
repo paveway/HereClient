@@ -6,7 +6,8 @@ import info.paveway.hereclient.CommonConstants.ParamKey;
 import info.paveway.hereclient.CommonConstants.Url;
 import info.paveway.hereclient.R;
 import info.paveway.hereclient.data.UserData;
-import info.paveway.hereclient.loader.HttpPostLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpLoaderCallbacks;
+import info.paveway.hereclient.loader.HttpPostLoader;
 import info.paveway.hereclient.loader.OnReceiveResponseListener;
 import info.paveway.log.Logger;
 
@@ -103,6 +104,7 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
     /**
      * ログアウトボタンの処理を行う。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doLogoutButton() {
         mLogger.d("IN");
 
@@ -115,8 +117,8 @@ public class LogoutDialog extends AbstractBaseDialogFragment {
 
         // ログアウトローダーをロードする。
         getActivity().getSupportLoaderManager().restartLoader(
-                LoaderId.LOGOUT, params, new HttpPostLoaderCallbacks(
-                        getActivity(), new LogoutOnReceiveResponseListener()));
+                LoaderId.LOGOUT, params, new HttpLoaderCallbacks(
+                        getActivity(), new LogoutOnReceiveResponseListener(), HttpPostLoader.class));
 
         mLogger.d("OUT(OK)");
     }
